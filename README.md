@@ -37,20 +37,26 @@ In this testcase a system is added to the vsum. The test checks that the system 
 
 ## Tutorial
 
-For the following example make yourself familiar with the model. The model is located in the `model` folder for more information read the [Model](#model) section.
+For the following example make yourself familiar with the meta-model. The meta-model is located in the `model` folder for more information read the [Model](#model) section.
 
 ### Editing the Model and Testing Reactions
 
-1. **Editing the Model** \
+1. **Editing the Meta-Model** \
     The `model.ecore` file defines a `component` and a `device` and `server` which extend the `component` .
-    Consider you're now a methodologist and you want to add a new `component` called `Router` which also extends the `component` .
+    Consider you're now a methodologist and you want to expand the meta-model to also support `Routers` which are also a `component` .
+    Add a new `component` called `Router` which also extends the `component` .
 
 2. **Keeping the Models Consistent** \
-    Once you have added the `Router` to the model we now want to ensure that
+    Once you have added the `Router` to the meta-model we now want to ensure that
     consistency is kept. Have a look at the reactions located in the `consistency` folder.
+    Reactions are used to keep the models, meaning the concrete instances of the meta-model, consistent.
     The `ComponentInsertedIntoSystem` reaction is responsible for creating a corresponding `Entity` for each `Component` that is inserted into the system.
 
-    The reaction defines when it is triggered, in this case when a `Component` is inserted into the system. It then calles a routine which restores the consistency. Here the routine `createAndInsertEntity` is called. With the `match` block all `components` without a matching `Entity` are selected. Then a new `Entity` is created. Afterwards all properties from the `Component` are set to the `Entity` . The `Entity` is then inserted into the `Root` . With the `addCorrespondenceBetween` method the `Component` and the `Entity` are linked.
+    When a `Component` is inserted into the instantiated system, the reaction is triggered in order to keep the model up to date.
+    It then calles a routine which restores the consistency.
+    Here the routine `createAndInsertEntity` is called. With the `match` block all `components` without a matching `Entity` are selected.
+    Then a new `Entity` is created. Afterwards all properties from the `Component` are set to the `Entity` .
+    The `Entity` is then inserted into the `Root` . With the `addCorrespondenceBetween` method the `Component` and the `Entity` are linked.
 
     Since the `Router` is a `Component` it will be matched by the reaction and a corresponding `Entity` will be created. Therefore we don't need to add a new reaction for the `Router` .
 
@@ -59,7 +65,6 @@ For the following example make yourself familiar with the model. The model is lo
     For this we can use the existing test case `insertComponent` and add a new test case for the `Router` .  
     We also need to add another helper method `addRouter` that creates a `Router` and adds it to the system. For reference have a look at the `addComponent` method.
     The test case with the `addRouter` method should look like this:
-
 
     ```java
     @Test
@@ -85,7 +90,7 @@ For the following example make yourself familiar with the model. The model is lo
 In order to later be able to keep the links consistent we now want to add `Protocol` to the second ecore file.
 This we will then keep consistent with the `Protocol` in the first ecore file using a reaction.
 
-1. **Updating the model** \
+1. **Updating the Meta-Model** \
     Add a `Protocol` class to the second ecore file.
     The `Protocol` should have a property name of type `EString` .
     Furthermore, the `Root` should have a list of `Protocol` objects.
@@ -129,7 +134,7 @@ Once you have done this, you can run the tests again and check that all tests ar
 
 ## Model
 
-The `model` folder contains the model in the ecore format. Note that each ecore file is accompanied by a genmodel. The genmodel is used to generate the code. If you update the ecore model, you need to update the genmodel. How to edit and also (automatically) update the genmodel please refer to [this Tutorial by Lars Vogel](https://www.vogella.com/tutorials/EclipseEMF/article.html).
+The `model` folder contains the meta-model in the ecore format. Note that each ecore file is accompanied by a genmodel. The genmodel is used to generate the code. If you update the ecore model, you need to update the genmodel. You can easily edit ecore models with the Eclipse Modeling Framework (EMF) in Eclipse. There you can also automatically update the genmodel. For more information on how to do that please refer to [this Tutorial by Lars Vogel](https://www.vogella.com/tutorials/EclipseEMF/article.html) on EMF and ecore.
 
 ## Consistency
 
