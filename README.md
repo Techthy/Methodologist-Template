@@ -60,7 +60,8 @@ For the following example make yourself familiar with the model. The model is lo
     We also need to add another helper method `addRouter` that creates a `Router` and adds it to the system. For reference have a look at the `addComponent` method.
     The test case with the `addRouter` method should look like this:
 
-    <!-- ```java
+
+    ```java
     @Test
     void insertRouter(@TempDir Path tempDir) {
         InternalVirtualModel vsum = createDefaultVirtualModel(tempDir);
@@ -75,11 +76,56 @@ For the following example make yourself familiar with the model. The model is lo
                 .getEntities().get(0).getName());
         }));
     }
-    ``` -->
+    ```
 
     This testcase asserts that a `Router` has been inserted into the system and an `Entity` has been created. It also checks that both have the same name.
 
 ### Writing a Reaction
+
+In order to later be able to keep the links consistent we now want to add `Protocol` to the second ecore file.
+This we will then keep consistent with the `Protocol` in the first ecore file using a reaction.
+
+1. **Updating the model** \
+    Add a `Protocol` class to the second ecore file.
+    The `Protocol` should have a name of type `EString` .
+    Furthermore, the `Root` should have a list of `Protocol` objects.
+    Once you have saved these changes to the model, don't forget to update the genmodel.
+
+2. **Creating a Reaction** \
+    Strongly inspired by the already existing `ComponentInsertedIntoSystem` reaction,
+    we now want to create a reaction that creates a `Protocol` and adds it to the `Root` .
+    The reaction should be triggered when a `Protocol` is inserted into the system. 
+    The reaction should look like this:
+
+    ```java
+    reaction ProtocolInsertedIntoSystem {
+        after element model::Protocol inserted in model::System[protocols]
+        call createAndInsertProtocol(affectedEObject, newValue)
+    }
+
+    routine createAndInsertProtocol(model::System system, model::Protocol protocol) {
+        match {
+            require absence of model2::Protocol corresponding to protocol
+            // retrieve the mRoot we added a correspondence in the createAndRegisterRoot routine in the update block (line 33 in this file)
+            val mRoot = retrieve model2::Root corresponding to system
+        }
+    create {
+        val mProtocol = new model2::Protocol
+    }
+        update {
+        mProtocol.name = protocol.name
+        mRoot.protocols.add(mProtocol)
+            addCorrespondenceBetween(protocol, mProtocol)
+        }
+    }
+    ```
+
+3. **Adding a Test Case** \
+    Now we want to ensure that the `Protocol` is correctly inserted into the system and that the reaction is triggered.
+    For this we can use the existing test case `insertComponent` and add a new test case for the `Protocol` .  
+    We also need to add another helper method `addProtocol` that creates a `Protocol` and adds it to the system. For reference have a look at the `addComponent` method.
+
+Once you have done this, you can run the tests again and check that all tests are passing.
 
 ## Model
 
