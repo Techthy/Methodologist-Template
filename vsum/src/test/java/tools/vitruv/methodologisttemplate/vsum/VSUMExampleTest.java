@@ -102,6 +102,21 @@ public class VSUMExampleTest {
   }
 
   @Test
+  void insertRouter(@TempDir Path tempDir) {
+    InternalVirtualModel vsum = createDefaultVirtualModel(tempDir);
+    addSystem(vsum, tempDir);
+    addRouter(vsum);
+    Assertions.assertTrue(assertView(getDefaultView(vsum, List.of(System.class, Root.class)), (View v) -> {
+      // assert that a router has been inserted, a entity has been created and that
+      // both have the same name
+      return v.getRootObjects(System.class).iterator().next()
+          .getComponents().get(0).getName()
+          .equals(v.getRootObjects(Root.class).iterator().next()
+              .getEntities().get(0).getName());
+    }));
+  }
+
+  @Test
   void insertProtocol(@TempDir Path tempDir) {
     InternalVirtualModel vsum = createDefaultVirtualModel(tempDir);
     addSystem(vsum, tempDir);
@@ -122,6 +137,15 @@ public class VSUMExampleTest {
       v.registerRoot(
           UncertaintyFactory.eINSTANCE.createUncertaintyAnnotationRepository(),
           URI.createFileURI(projectPath.toString() + "/example.model"));
+    });
+  }
+
+  private void addRouter(VirtualModel vsum) {
+    CommittableView view = getDefaultView(vsum, List.of(System.class)).withChangeDerivingTrait();
+    modifyView(view, (CommittableView v) -> {
+      var router = ModelFactory.eINSTANCE.createRouter();
+      router.setName("specialname");
+      v.getRootObjects(System.class).iterator().next().getComponents().add(router);
     });
   }
 
