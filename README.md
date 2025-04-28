@@ -87,7 +87,7 @@ This we will then keep consistent with the `Protocol` in the first ecore file us
 
 1. **Updating the model** \
     Add a `Protocol` class to the second ecore file.
-    The `Protocol` should have a name of type `EString` .
+    The `Protocol` should have a property name of type `EString` .
     Furthermore, the `Root` should have a list of `Protocol` objects.
     Once you have saved these changes to the model, don't forget to update the genmodel.
 
@@ -109,9 +109,9 @@ This we will then keep consistent with the `Protocol` in the first ecore file us
             // retrieve the mRoot we added a correspondence in the createAndRegisterRoot routine in the update block (line 33 in this file)
             val mRoot = retrieve model2::Root corresponding to system
         }
-    create {
-        val mProtocol = new model2::Protocol
-    }
+        create {
+            val mProtocol = new model2::Protocol
+        }
         update {
         mProtocol.name = protocol.name
         mRoot.protocols.add(mProtocol)
