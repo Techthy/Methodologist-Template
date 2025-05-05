@@ -153,7 +153,7 @@ public class VSUMExampleTest {
     CommittableView view = getDefaultView(vsum, List.of(System.class)).withChangeDerivingTrait();
     modifyView(view, (CommittableView v) -> {
       var protocol = ModelFactory.eINSTANCE.createProtocol();
-      protocol.setName("specialname");
+      protocol.setName("specialProtocolName");
       v.getRootObjects(System.class).iterator().next().getProtocols().add(protocol);
     });
   }

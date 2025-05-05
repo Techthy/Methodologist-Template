@@ -85,7 +85,7 @@ For the following example make yourself familiar with the meta-model. The meta-m
 
     This testcase asserts that a `Router` has been inserted into the system and an `Entity` has been created. It also checks that both have the same name.
 
-### Writing a Reaction
+### Writing a simple Reaction
 
 In order to later be able to keep the links consistent we now want to add `Protocol` to the second ecore file.
 This we will then keep consistent with the `Protocol` in the first ecore file using a reaction.
@@ -93,13 +93,15 @@ This we will then keep consistent with the `Protocol` in the first ecore file us
 1. **Updating the Meta-Model** \
     Add a `Protocol` class to the second ecore file.
     The `Protocol` should have a property name of type `EString` .
-    Furthermore, the `Root` should have a list of `Protocol` objects.
+    Note that all Instances of classes of a meta-model must be contained.
+    Therefore update the `Root` class to contain a list of `Protocol` objects.
+    Make sure to set the `Containment` property of the relation to `true` in the ecore file.
     Once you have saved these changes to the model, don't forget to update the genmodel.
 
 2. **Creating a Reaction** \
     Strongly inspired by the already existing `ComponentInsertedIntoSystem` reaction,
     we now want to create a reaction that creates a `Protocol` and adds it to the `Root` .
-    The reaction should be triggered when a `Protocol` is inserted into the system. 
+    The reaction should be triggered when a `Protocol` is inserted into the system.
     The reaction should look like this:
 
     ```java
