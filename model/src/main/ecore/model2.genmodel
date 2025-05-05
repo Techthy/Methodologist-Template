@@ -10,12 +10,14 @@
     <genClasses ecoreClass="model2.ecore#//Root">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference model2.ecore#//Root/entities"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference model2.ecore#//Root/protocols"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference model2.ecore#//Root/links"/>
     </genClasses>
     <genClasses ecoreClass="model2.ecore#//Entity">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute model2.ecore#//Entity/name"/>
     </genClasses>
     <genClasses ecoreClass="model2.ecore#//Link">
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference model2.ecore#//Link/Entitys"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference model2.ecore#//Link/protocol"/>
     </genClasses>
     <genClasses ecoreClass="model2.ecore#//Protocol">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute model2.ecore#//Protocol/name"/>

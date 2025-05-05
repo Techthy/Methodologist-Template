@@ -133,6 +133,23 @@ This we will then keep consistent with the `Protocol` in the first ecore file us
 
 Once you have done this, you can run the tests again and check that all tests are passing.
 
+### Writing a more complex Reaction
+
+In the previous section we have seen how to create a simple reaction that is triggered when a `Protocol` is inserted into the system.
+Now we want to keep the links between the two meta-models consistent.
+
+1. **Updating the models** \
+   Both ecore files specify a `Link` class.
+   The ecore files need to be adjusted. Add a property called `name` of type `EString` to both `Link` classes (in each ecore file).
+   Again all Links need to be contained in the model.
+   Therefore a property with `Containment` enabled called `links` of type `Link` needs to be added to the `Root` class in `model.ecore`.
+   The `Link` class within the model.ecore specifies that each `Link` has a also a `Protocol` .
+   Since we have already added a `Protocol` to the second ecore file, we just need to also add this reference to the `Link` class in the second ecore file.
+   Note that the multiplicity of the `Protocol` reference is `1..1`.
+   After updating the ecore files, don't forget to update the genmodel.
+
+2. **Creating a Reaction** \
+
 ## Model
 
 The `model` folder contains the meta-model in the ecore format. Note that each ecore file is accompanied by a genmodel. The genmodel is used to generate the code. If you update the ecore model, you need to update the genmodel. You can easily edit ecore models with the Eclipse Modeling Framework (EMF) in Eclipse. There you can also automatically update the genmodel. For more information on how to do that please refer to [this Tutorial by Lars Vogel](https://www.vogella.com/tutorials/EclipseEMF/article.html) on EMF and ecore.
