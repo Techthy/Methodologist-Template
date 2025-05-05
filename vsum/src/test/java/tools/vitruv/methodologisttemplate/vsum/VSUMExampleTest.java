@@ -127,7 +127,7 @@ public class VSUMExampleTest {
       return v.getRootObjects(System.class).iterator().next()
           .getProtocols().get(0).getName()
           .equals(v.getRootObjects(Root.class).iterator().next()
-              .getEntities().get(0).getName());
+              .getProtocols().get(0).getName());
     }));
   }
 
