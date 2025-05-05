@@ -16,8 +16,9 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute model2.ecore#//Entity/name"/>
     </genClasses>
     <genClasses ecoreClass="model2.ecore#//Link">
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference model2.ecore#//Link/Entitys"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference model2.ecore#//Link/entities"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference model2.ecore#//Link/protocol"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute model2.ecore#//Link/name"/>
     </genClasses>
     <genClasses ecoreClass="model2.ecore#//Protocol">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute model2.ecore#//Protocol/name"/>
