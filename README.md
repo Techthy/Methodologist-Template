@@ -149,6 +149,16 @@ Now we want to keep the links between the two meta-models consistent.
    After updating the ecore files, don't forget to update the genmodel.
 
 2. **Creating a Reaction** \
+   Now we want to create the reactions that keep the links consistent.
+   Yes there are multiple reactions needed.
+   As a first thought one might think that we can create a link object (belonging to the first ecore file) add a protocol and components and then write just one reaction that keeps this link consistent.
+   The problem that we run into is that the entities corresponding to the components are not necessarily yet created when the link is created.
+   The reason for this is that there is no set order in which the reactions are executed.
+   Therefore we create multiple separate reactions.
+   One will be responsible for creating the link and add it to the root object whenever a link is inserted into the system.
+   The other reactions will be responsible for adding entities and protocols to the link which correspond to their respective counterparts within the first file.
+
+   We add the `LinkInsertedIntoSystem` and `ComponentInsertedIntoLink` reactions to the templateReactions.reactions file.
 
 ## Model
 

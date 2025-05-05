@@ -131,6 +131,23 @@ public class VSUMExampleTest {
     }));
   }
 
+  @Test
+  void insertLink(@TempDir Path tempDir) {
+    InternalVirtualModel vsum = createDefaultVirtualModel(tempDir);
+    addSystem(vsum, tempDir);
+    addComponent(vsum);
+    addComponent(vsum);
+    addProtocol(vsum);
+    addLink(vsum);
+    Assertions.assertTrue(assertView(getDefaultView(vsum, List.of(System.class, Root.class)), (View v) -> {
+      return v.getRootObjects(System.class).iterator().next()
+          .getLinks().get(0).getName()
+          .equals(v.getRootObjects(Root.class).iterator().next()
+              .getLinks().get(0)
+              .getName());
+    }));
+  }
+
   private void addSystem(VirtualModel vsum, Path projectPath) {
     CommittableView view = getDefaultView(vsum, List.of(System.class)).withChangeDerivingTrait();
     modifyView(view, (CommittableView v) -> {
@@ -155,6 +172,17 @@ public class VSUMExampleTest {
       var protocol = ModelFactory.eINSTANCE.createProtocol();
       protocol.setName("specialProtocolName");
       v.getRootObjects(System.class).iterator().next().getProtocols().add(protocol);
+    });
+  }
+
+  private void addLink(VirtualModel vsum) {
+    CommittableView view = getDefaultView(vsum, List.of(System.class)).withChangeDerivingTrait();
+    modifyView(view, (CommittableView v) -> {
+      var link = ModelFactory.eINSTANCE.createLink();
+      link.setName("specialLinkname");
+      link.getComponents().addAll(v.getRootObjects(System.class).iterator().next().getComponents());
+      link.setProtocol(v.getRootObjects(System.class).iterator().next().getProtocols().get(0));
+      v.getRootObjects(System.class).iterator().next().getLinks().add(link);
     });
   }
 

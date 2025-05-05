@@ -110,3 +110,57 @@ routine createAndInsertProtocol(model::System system, model::Protocol protocol) 
 		addCorrespondenceBetween(protocol, mProtocol)
 	}
 }
+
+reaction LinkInsertedIntoSystem {
+	after element model::Link inserted in model::System[links]
+	call createAndInsertLink(affectedEObject, newValue)
+}
+
+routine createAndInsertLink(model::System system, model::Link link) {
+	match {
+		require absence of model2::Link corresponding to link
+		val mRoot = retrieve model2::Root corresponding to system
+
+	}
+	create {
+		val mLink = new model2::Link
+	}
+	update {
+		mLink.name = link.name
+		mRoot.links.add(mLink)
+		addCorrespondenceBetween(mLink, link)
+	}
+}
+
+
+reaction CompontentInsertedIntoLink {
+	after element model::Component inserted in model::Link[components]
+	call addComponentToLink(affectedEObject, newValue)
+}
+
+routine addComponentToLink(model::Link link, model::Component component) {
+	match {
+		val mLink = retrieve model2::Link corresponding to link
+		val mEntity = retrieve model2::Entity corresponding to component
+	}
+	update {
+		mLink.entities.add(mEntity)
+		addCorrespondenceBetween(component, mEntity)
+	}
+}
+
+reaction ProtocolInsertedIntoLink {
+	after element model::Protocol inserted in model::Link[protocol]
+	call addProtocolToLink(affectedEObject, newValue)
+}
+
+routine addProtocolToLink(model::Link link, model::Protocol protocol) {
+	match {
+		val mLink = retrieve model2::Link corresponding to link
+		val mProtocol = retrieve model2::Protocol corresponding to protocol
+	}
+	update {
+		mLink.protocol = mProtocol
+		addCorrespondenceBetween(protocol, mProtocol)
+	}
+}
