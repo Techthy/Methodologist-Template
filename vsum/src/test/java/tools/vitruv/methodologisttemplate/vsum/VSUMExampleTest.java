@@ -138,13 +138,35 @@ public class VSUMExampleTest {
     addComponent(vsum);
     addComponent(vsum);
     addProtocol(vsum);
+    // add a link between the two components and the protocol
     addLink(vsum);
     Assertions.assertTrue(assertView(getDefaultView(vsum, List.of(System.class, Root.class)), (View v) -> {
+      // assert that a link with the same name has been inserted into root
       return v.getRootObjects(System.class).iterator().next()
           .getLinks().get(0).getName()
           .equals(v.getRootObjects(Root.class).iterator().next()
               .getLinks().get(0)
               .getName());
+    }));
+    Assertions.assertTrue(assertView(getDefaultView(vsum, List.of(System.class, Root.class)), (View v) -> {
+      // assert that a two protocols corresponding to the respective links have the
+      // same name
+      return v.getRootObjects(System.class).iterator().next()
+          .getLinks().get(0).getProtocol().getName()
+          .equals(v.getRootObjects(Root.class).iterator().next()
+              .getLinks().get(0).getProtocol().getName());
+    }));
+    Assertions.assertTrue(assertView(getDefaultView(vsum, List.of(System.class, Root.class)), (View v) -> {
+      // assert that the components belonging to the link in the system and the
+      // corresponding entities in the root have the same name
+      return v.getRootObjects(System.class).iterator().next()
+          .getLinks().get(0).getComponents().get(0).getName()
+          .equals(v.getRootObjects(Root.class).iterator().next()
+              .getLinks().get(0).getEntities().get(0).getName())
+          && v.getRootObjects(System.class).iterator().next()
+              .getLinks().get(0).getComponents().get(1).getName()
+              .equals(v.getRootObjects(Root.class).iterator().next()
+                  .getLinks().get(0).getEntities().get(1).getName());
     }));
   }
 

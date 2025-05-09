@@ -150,7 +150,7 @@ routine addComponentToLink(model::Link link, model::Component component) {
 }
 
 reaction ProtocolInsertedIntoLink {
-	after element model::Protocol inserted in model::Link[protocol]
+	after element replaced at model::Link[protocol]
 	call addProtocolToLink(affectedEObject, newValue)
 }
 

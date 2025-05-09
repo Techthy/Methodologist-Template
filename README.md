@@ -158,7 +158,38 @@ Now we want to keep the links between the two meta-models consistent.
    One will be responsible for creating the link and add it to the root object whenever a link is inserted into the system.
    The other reactions will be responsible for adding entities and protocols to the link which correspond to their respective counterparts within the first file.
 
-   We add the `LinkInsertedIntoSystem` and `ComponentInsertedIntoLink` reactions to the templateReactions.reactions file.
+   We add the `LinkInsertedIntoSystem`, `ComponentInsertedIntoLink` and `ProtocolInsertedIntoLink` reactions to the templateReactions.reactions file.
+
+   We take a closer look at the `ProtocolInsertedIntoLink` reaction.
+
+   ```java
+      reaction ProtocolInsertedIntoLink {
+         after element replaced at model::Link[protocol]
+         call addProtocolToLink(affectedEObject, newValue)
+      }
+
+      routine addProtocolToLink(model::Link link, model::Protocol protocol) {
+         match {
+            val mLink = retrieve model2::Link corresponding to link
+            val mProtocol = retrieve model2::Protocol corresponding to protocol
+         }
+         update {
+            mLink.protocol = mProtocol
+            addCorrespondenceBetween(protocol, mProtocol)
+         }
+      }
+   ```
+
+   Note that we use the `replaced` event instead of the `inserted` event.
+   The reason for this lies within the meta-model. Since we specified that the lower bound of the `protocol` reference is `1` we cannot insert a `Protocol` into the `Link` object.
+   Even though it is not yet been set, the reaction just looks at the specification of the meta-model and therefore assumes that the `Protocol` is already present since the lower bound is `1`.
+
+3. **Adding a Test Case** \
+
+   We now add a test case that checks that when we insert a `Link` into the system and add a `Protocol` as well as `Components` to the `Link` that the corresponding `Link`, `Entities` and `Protocol` are created.
+   Have a look at the `insertLink` test case in the `VSUMExampleTest.java` file.
+   We first add all the different objects to the system and then check that the corresponding objects are created.
+   We check that the `Link` is created and that the `Protocol` and `Entities` are added to the `Link` object.
 
 ## Model
 
