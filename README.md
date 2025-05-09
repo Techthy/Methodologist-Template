@@ -184,12 +184,55 @@ Now we want to keep the links between the two meta-models consistent.
    The reason for this lies within the meta-model. Since we specified that the lower bound of the `protocol` reference is `1` we cannot insert a `Protocol` into the `Link` object.
    Even though it is not yet been set, the reaction just looks at the specification of the meta-model and therefore assumes that the `Protocol` is already present since the lower bound is `1`.
 
-3. **Adding a Test Case** \
+3. **Adding a Test Case**
 
    We now add a test case that checks that when we insert a `Link` into the system and add a `Protocol` as well as `Components` to the `Link` that the corresponding `Link`, `Entities` and `Protocol` are created.
    Have a look at the `insertLink` test case in the `VSUMExampleTest.java` file.
    We first add all the different objects to the system and then check that the corresponding objects are created.
-   We check that the `Link` is created and that the `Protocol` and `Entities` are added to the `Link` object.
+   We check that the `Link` is created and that the `Protocol` and `Entities` are added to the `Link` object. We compare that the names of the `Link` and `Protocol` as well as `Component`/`Entity` objects are the same in both meta-models.
+
+   ```java
+      @Test
+      void insertLink(@TempDir Path tempDir) {
+         InternalVirtualModel vsum = createDefaultVirtualModel(tempDir);
+         // add all the objects to the system (and trigger their respective reactions)
+         addSystem(vsum, tempDir);
+         addComponent(vsum);
+         addComponent(vsum);
+         addProtocol(vsum);
+         // add a link between the two components and the protocol
+         addLink(vsum);
+         Assertions.assertTrue(assertView(getDefaultView(vsum, List.of(System.class, Root.class)), (View v) -> {
+            // assert that a link with the same name has been inserted into root
+            return v.getRootObjects(System.class).iterator().next()
+               .getLinks().get(0).getName()
+               .equals(v.getRootObjects(Root.class).iterator().next()
+                  .getLinks().get(0)
+                  .getName());
+         }));
+         Assertions.assertTrue(assertView(getDefaultView(vsum, List.of(System.class, Root.class)), (View v) -> {
+            // assert that a two protocols corresponding to the respective links have the
+            // same name
+            return v.getRootObjects(System.class).iterator().next()
+               .getLinks().get(0).getProtocol().getName()
+               .equals(v.getRootObjects(Root.class).iterator().next()
+                  .getLinks().get(0).getProtocol().getName());
+         }));
+         Assertions.assertTrue(assertView(getDefaultView(vsum, List.of(System.class, Root.class)), (View v) -> {
+            // assert that the components belonging to the link in the system and the
+            // corresponding entities in the root have the same name
+            return v.getRootObjects(System.class).iterator().next()
+               .getLinks().get(0).getComponents().get(0).getName()
+               .equals(v.getRootObjects(Root.class).iterator().next()
+                  .getLinks().get(0).getEntities().get(0).getName())
+               && v.getRootObjects(System.class).iterator().next()
+                  .getLinks().get(0).getComponents().get(1).getName()
+                  .equals(v.getRootObjects(Root.class).iterator().next()
+                        .getLinks().get(0).getEntities().get(1).getName());
+         }));
+      }
+
+   ```
 
 ## Model
 
