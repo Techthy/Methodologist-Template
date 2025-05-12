@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="uncertainty" nsURI="http://www.example.org/uncertainty" nsPrefix="uncertainty">
+  <eClassifiers xsi:type="ecore:EClass" name="UncertaintyAnnotationRepository">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="uncertainties" upperBound="-1"
+        eType="#//Uncertainty" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Uncertainty">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" eType="#//UncertaintyKind"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="reducability" eType="#//ReducabilityLevel"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nature" eType="#//UncertaintyNature"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="uncertaintyLocation" eType="#//UncertaintyLocation"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UncertaintyKind">
+    <eLiterals name="BeliefUncertainty" value="1"/>
+    <eLiterals name="OccurenceUncertainty" value="2"/>
+    <eLiterals name="Spatiotemporal" value="3"/>
+    <eLiterals name="BehaviorUncertainty" value="4"/>
+    <eLiterals name="MeasurementUncertainty" value="5"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ReducabilityLevel">
+    <eLiterals name="FullyReducable" value="1"/>
+    <eLiterals name="PartiallyReducible" value="2"/>
+    <eLiterals name="Irreducible" value="3"/>
+    <eLiterals name="Unknown" value="4"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UncertaintyNature">
+    <eLiterals name="Aleatory" value="1"/>
+    <eLiterals name="Epistemic" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UncertaintyLocationType">
+    <eLiterals name="Parameter"/>
+    <eLiterals name="Outcome"/>
+    <eLiterals name="Inputs"/>
+    <eLiterals name="Analysis"/>
+    <eLiterals name="Context"/>
+    <eLiterals name="DecisionMaking"/>
+    <eLiterals name="ModelInputUncertainty"/>
+    <eLiterals name="ModelStructureUncertainty"/>
+    <eLiterals name="ModelOutcomeUncertainty"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="UncertaintyLocation">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="referencesComponents" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="location" eType="#//UncertaintyLocationType"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="specification" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+</ecore:EPackage>

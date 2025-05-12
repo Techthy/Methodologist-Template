@@ -22,4 +22,20 @@
             genModel="src/main/ecore/model2.genmodel"/>
    </extension>
 
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated brakesystem -->
+      <package
+            uri="http://www.example.org/brakesystem"
+            class="brakesystem.brakesystemPackage"
+            genModel="src/main/ecore/brakesystem.genmodel"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated uncertainty -->
+      <package
+            uri="http://www.example.org/uncertainty"
+            class="uncertainty.UncertaintyPackage"
+            genModel="src/main/ecore/uncertainty.genmodel"/>
+   </extension>
+
 </plugin>
