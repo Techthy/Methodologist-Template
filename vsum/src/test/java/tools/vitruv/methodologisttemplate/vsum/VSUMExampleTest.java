@@ -38,7 +38,7 @@ public class VSUMExampleTest {
   }
 
   @Test
-  void systemInsertionAndPropagationTest(@TempDir Path tempDir) {
+  void uncertaintyAnnotationRepositoryInsertionAndPropagationTest(@TempDir Path tempDir) {
     VirtualModel vsum = createDefaultVirtualModel(tempDir);
     addUncertaintyAnnotationRepository(vsum, tempDir);
     // assert that the directly added System is present

@@ -1,7 +1,7 @@
 package tools.vitruv.methodologisttemplate.vsum;
 
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
-import tools.vitruv.methodologisttemplate.model.model.ModelFactory;
+import uncertainty.UncertaintyFactory;
 
 import java.nio.file.Path;
 import java.util.function.Consumer;
@@ -20,7 +20,7 @@ public class VSUMExample {
     VirtualModel vsum = createDefaultVirtualModel();
     CommittableView view = getDefaultView(vsum).withChangeDerivingTrait();
     modifyView(view, (CommittableView v) -> {
-      v.getRootObjects().add(ModelFactory.eINSTANCE.createSystem());
+      v.getRootObjects().add(UncertaintyFactory.eINSTANCE.createUncertaintyAnnotationRepository());
     });
   }
 
