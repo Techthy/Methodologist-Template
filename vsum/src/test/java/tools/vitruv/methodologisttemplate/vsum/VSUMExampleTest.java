@@ -2,8 +2,6 @@ package tools.vitruv.methodologisttemplate.vsum;
 
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 import tools.vitruv.framework.vsum.internal.InternalVirtualModel;
-import tools.vitruv.methodologisttemplate.model.model.ModelFactory;
-import tools.vitruv.methodologisttemplate.model.model2.Root;
 
 import java.nio.file.Path;
 import java.util.Collection;
