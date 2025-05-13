@@ -1,0 +1,9 @@
+
+import java.io.File;
+
+import "http://www.example.org/brakesystem" as brakesystem
+import "http://www.example.org/cad" as cad
+
+reactions: brakesystem2cad
+in reaction to changes in brakesystem
+execute actions in cad

@@ -4,7 +4,7 @@ import java.io.File;
 import "http://www.example.org/uncertainty" as uncertainty
 import "http://www.example.org/brakesystem" as brakesystem
 
-reactions: model2Model2
+reactions: uncertainty2brakesystem
 in reaction to changes in uncertainty
 execute actions in brakesystem
 
@@ -30,3 +30,4 @@ routine createAndRegisterRoot(uncertainty::UncertaintyAnnotationRepository repo)
 		addCorrespondenceBetween(repo, mBrakesystem)
 	}
 }
+
