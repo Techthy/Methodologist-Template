@@ -16,9 +16,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import brakesystem.BrakeDisk;
 import brakesystem.Brakesystem;
+import brakesystem.BrakesystemFactory;
 import uncertainty.UncertaintyAnnotationRepository;
+import cad.CADElement;
 import cad.CADRepository;
+import cad.Circle;
 import uncertainty.UncertaintyFactory;
 import mir.reactions.uncertainty2brakesystem.Uncertainty2brakesystemChangePropagationSpecification;
 import mir.reactions.brakesystem2cad.Brakesystem2cadChangePropagationSpecification;
@@ -64,13 +68,44 @@ public class VSUMExampleTest {
 
   }
 
+  @Test
+  void insertBrakeDiscIntoBrakesystemTest(@TempDir Path tempDir) {
+    VirtualModel vsum = createDefaultVirtualModel(tempDir);
+    addBrakesystem(vsum, tempDir);
+    addBrakeDisc(vsum, tempDir);
+    // assert that the directly added System is present
+    Assertions
+        .assertTrue(assertView(getDefaultView(vsum, List.of(Brakesystem.class, CADRepository.class)), (View v) -> {
+          // assert that a component has been inserted, a entity has been created and that
+          // both have the same name
+          // Note: to make the test result easier to understand, these different effects
+          // should be tested one by one
+
+          BrakeDisk brakeDisk = (BrakeDisk) v.getRootObjects(Brakesystem.class).iterator().next()
+              .getBrakeComponents().get(0);
+          Circle circle = (Circle) v.getRootObjects(CADRepository.class).iterator().next().getCadElements().get(0);
+          return brakeDisk.getDiameterInMM() == circle.getRadius() * 2;
+
+        }));
+  }
+
   private void addBrakesystem(VirtualModel vsum, Path projectPath) {
     CommittableView view = getDefaultView(vsum, List.of(Brakesystem.class))
         .withChangeDerivingTrait();
     modifyView(view, (CommittableView v) -> {
       v.registerRoot(
-          UncertaintyFactory.eINSTANCE.createUncertaintyAnnotationRepository(),
+          BrakesystemFactory.eINSTANCE.createBrakesystem(),
           URI.createFileURI(projectPath.toString() + "/example.model"));
+    });
+  }
+
+  private void addBrakeDisc(VirtualModel vsum, Path projectPath) {
+    CommittableView view = getDefaultView(vsum, List.of(Brakesystem.class))
+        .withChangeDerivingTrait();
+    modifyView(view, (CommittableView v) -> {
+      var brakeDisc = BrakesystemFactory.eINSTANCE.createBrakeDisk();
+      brakeDisc.setDiameterInMM(120);
+      v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents().add(brakeDisc);
     });
   }
 
