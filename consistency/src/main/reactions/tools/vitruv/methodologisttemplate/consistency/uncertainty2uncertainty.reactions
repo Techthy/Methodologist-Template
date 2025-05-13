@@ -1,0 +1,37 @@
+
+import java.io.File;
+
+import "http://www.example.org/uncertainty" as uncertainty
+import "http://www.example.org/brakesystem" as brakesystem
+import "http://www.example.org/cad" as cad
+
+
+reactions: uncertainty2uncertainty
+in reaction to changes in uncertainty
+execute actions in uncertainty
+
+
+reaction UncertaintyInserted {
+    after element uncertainty::Uncertainty inserted in uncertainty::UncertaintyAnnotationRepository[uncertainties]
+  // newValue refers to the newly inserted element of type System (provided by the reactions runtime environment at runtime)
+    call createCorrespondingUncertainty(affectedEObject, newValue)
+}
+
+routine createCorrespondingUncertainty(uncertainty::UncertaintyAnnotationRepository repo, uncertainty::Uncertainty uncertainty) {
+    match {
+        // we do only want to create a new corresponding Root if we not have one already and the old one has, e.g., only been moved
+        val circle = retrieve cad::Circle corresponding to uncertainty.getUncertaintyLocation().getReferencesComponents().get(0)
+    }
+    create {
+        // short way of using the respective Factory calls, which would be used in the update-block
+        val mUncertainty = new uncertainty::Uncertainty
+        val mUncertaintyLocation = new uncertainty::UncertaintyLocation
+    }
+    update {
+        // TODO: copy attributes from uncertainty to mUncertainty
+        mUncertainty.setUncertaintyLocation(mUncertaintyLocation)
+        mUncertaintyLocation.getReferencesComponents.add(circle)
+        repo.uncertainties.add(mUncertainty)
+        addCorrespondenceBetween(uncertainty, mUncertainty)
+    }
+}

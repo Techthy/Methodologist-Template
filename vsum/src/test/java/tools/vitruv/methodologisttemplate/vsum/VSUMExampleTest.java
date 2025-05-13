@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.junit.jupiter.api.Assertions;
@@ -20,6 +21,7 @@ import brakesystem.BrakeDisk;
 import brakesystem.Brakesystem;
 import brakesystem.BrakesystemFactory;
 import uncertainty.ReducabilityLevel;
+import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
 import cad.CADElement;
 import cad.CADRepository;
@@ -29,6 +31,7 @@ import uncertainty.UncertaintyKind;
 import uncertainty.UncertaintyLocationType;
 import uncertainty.UncertaintyNature;
 import mir.reactions.uncertainty2brakesystem.Uncertainty2brakesystemChangePropagationSpecification;
+import mir.reactions.uncertainty2uncertainty.Uncertainty2uncertaintyChangePropagationSpecification;
 import mir.reactions.brakesystem2cad.Brakesystem2cadChangePropagationSpecification;
 import tools.vitruv.change.propagation.ChangePropagationMode;
 import tools.vitruv.change.testutils.TestUserInteraction;
@@ -103,32 +106,46 @@ public class VSUMExampleTest {
     // .getUncertainties().size() == 1;
 
     // }));
+    // Assert that a Uncertainty another was added
     Assertions
-        .assertTrue(assertView(getDefaultView(vsum, List.of(Brakesystem.class, CADRepository.class)), (View v) -> {
+        .assertTrue(assertView(getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)), (View v) -> {
 
-          BrakeDisk brakeDisk = (BrakeDisk) v.getRootObjects(Brakesystem.class).iterator().next()
-              .getBrakeComponents().get(0);
-          Circle circle = (Circle) v.getRootObjects(CADRepository.class).iterator().next().getCadElements().get(0);
-          return brakeDisk.getDiameterInMM() == circle.getRadius() * 2;
+          int s = v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next().getUncertainties().size();
+          return s == 2;
 
         }));
+
+    Assertions
+        .assertTrue(assertView(getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)), (View v) -> {
+
+          Uncertainty uncertainty2 = v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+              .getUncertainties().get(1);
+          EObject ref = uncertainty2.getUncertaintyLocation().getReferencesComponents().get(0);
+          return ref instanceof Circle;
+        }));
+
   }
 
   private void addUncertainty(VirtualModel vsum, Path projectPath) {
-    CommittableView view = getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
+    CommittableView view = getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
         .withChangeDerivingTrait();
     modifyView(view, (CommittableView v) -> {
       var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
       uncertaintyLocation.setLocation(UncertaintyLocationType.PARAMETER);
       uncertaintyLocation.setSpecification("Diameter");
-      // uncertaintyLocation.getReferencesComponents()
-      // .add(v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents().get(0));
+      uncertaintyLocation.getReferencesComponents()
+          .add(v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents().get(0));
       var uncertaintyObj = UncertaintyFactory.eINSTANCE.createUncertainty();
       uncertaintyObj.setUncertaintyLocation(uncertaintyLocation);
       uncertaintyObj.setKind(UncertaintyKind.MEASUREMENT_UNCERTAINTY);
       uncertaintyObj.setReducability(ReducabilityLevel.UNKNOWN);
       uncertaintyObj.setNature(UncertaintyNature.ALEATORY);
-
+      // Workaround for now (Problem is that I cannot reference the Brakesystem with
+      // Change Deriving traits and then change nothing)
+      // On the other hand I cannot just checkout another view as the references then
+      // do not match.
+      v.getRootObjects(Brakesystem.class).iterator().next()
+          .getBrakeComponents().get(0).setSpecificationType("Type");
       v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
           .getUncertainties().add(uncertaintyObj);
     });
@@ -171,6 +188,8 @@ public class VSUMExampleTest {
         .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))
         .withChangePropagationSpecifications(new Uncertainty2brakesystemChangePropagationSpecification())
         .withChangePropagationSpecification(new Brakesystem2cadChangePropagationSpecification())
+        .withChangePropagationSpecification(new Uncertainty2uncertaintyChangePropagationSpecification())
+
         .buildAndInitialize();
     model.setChangePropagationMode(ChangePropagationMode.TRANSITIVE_CYCLIC);
     return model;
