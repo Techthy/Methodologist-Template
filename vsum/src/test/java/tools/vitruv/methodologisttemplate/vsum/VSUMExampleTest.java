@@ -18,8 +18,10 @@ import org.junit.jupiter.api.io.TempDir;
 
 import brakesystem.Brakesystem;
 import uncertainty.UncertaintyAnnotationRepository;
+import cad.CADRepository;
 import uncertainty.UncertaintyFactory;
 import mir.reactions.uncertainty2brakesystem.Uncertainty2brakesystemChangePropagationSpecification;
+import mir.reactions.brakesystem2cad.Brakesystem2cadChangePropagationSpecification;
 import tools.vitruv.change.propagation.ChangePropagationMode;
 import tools.vitruv.change.testutils.TestUserInteraction;
 import tools.vitruv.framework.views.CommittableView;
@@ -49,6 +51,29 @@ public class VSUMExampleTest {
     Assertions.assertEquals(1, getDefaultView(vsum, List.of(Brakesystem.class)).getRootObjects().size());
   }
 
+  @Test
+  void BrakesystemInsertationAndPropagationTest(@TempDir Path tempDir) {
+    VirtualModel vsum = createDefaultVirtualModel(tempDir);
+    addBrakesystem(vsum, tempDir);
+    // assert that the directly added System is present
+    Assertions.assertEquals(1,
+        getDefaultView(vsum, List.of(Brakesystem.class)).getRootObjects().size());
+
+    Assertions.assertEquals(1,
+        getDefaultView(vsum, List.of(CADRepository.class)).getRootObjects().size());
+
+  }
+
+  private void addBrakesystem(VirtualModel vsum, Path projectPath) {
+    CommittableView view = getDefaultView(vsum, List.of(Brakesystem.class))
+        .withChangeDerivingTrait();
+    modifyView(view, (CommittableView v) -> {
+      v.registerRoot(
+          UncertaintyFactory.eINSTANCE.createUncertaintyAnnotationRepository(),
+          URI.createFileURI(projectPath.toString() + "/example.model"));
+    });
+  }
+
   private void addUncertaintyAnnotationRepository(VirtualModel vsum, Path projectPath) {
     CommittableView view = getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
         .withChangeDerivingTrait();
@@ -64,6 +89,7 @@ public class VSUMExampleTest {
         .withStorageFolder(projectPath)
         .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))
         .withChangePropagationSpecifications(new Uncertainty2brakesystemChangePropagationSpecification())
+        .withChangePropagationSpecification(new Brakesystem2cadChangePropagationSpecification())
         .buildAndInitialize();
     model.setChangePropagationMode(ChangePropagationMode.TRANSITIVE_CYCLIC);
     return model;
