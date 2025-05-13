@@ -19,11 +19,15 @@ import org.junit.jupiter.api.io.TempDir;
 import brakesystem.BrakeDisk;
 import brakesystem.Brakesystem;
 import brakesystem.BrakesystemFactory;
+import uncertainty.ReducabilityLevel;
 import uncertainty.UncertaintyAnnotationRepository;
 import cad.CADElement;
 import cad.CADRepository;
 import cad.Circle;
 import uncertainty.UncertaintyFactory;
+import uncertainty.UncertaintyKind;
+import uncertainty.UncertaintyLocationType;
+import uncertainty.UncertaintyNature;
 import mir.reactions.uncertainty2brakesystem.Uncertainty2brakesystemChangePropagationSpecification;
 import mir.reactions.brakesystem2cad.Brakesystem2cadChangePropagationSpecification;
 import tools.vitruv.change.propagation.ChangePropagationMode;
@@ -73,13 +77,34 @@ public class VSUMExampleTest {
     VirtualModel vsum = createDefaultVirtualModel(tempDir);
     addBrakesystem(vsum, tempDir);
     addBrakeDisc(vsum, tempDir);
-    // assert that the directly added System is present
     Assertions
         .assertTrue(assertView(getDefaultView(vsum, List.of(Brakesystem.class, CADRepository.class)), (View v) -> {
-          // assert that a component has been inserted, a entity has been created and that
-          // both have the same name
-          // Note: to make the test result easier to understand, these different effects
-          // should be tested one by one
+          BrakeDisk brakeDisk = (BrakeDisk) v.getRootObjects(Brakesystem.class).iterator().next()
+              .getBrakeComponents().get(0);
+          Circle circle = (Circle) v.getRootObjects(CADRepository.class).iterator().next().getCadElements().get(0);
+          return brakeDisk.getDiameterInMM() == circle.getRadius() * 2;
+
+        }));
+  }
+
+  @Test
+  void addUncertaintyForBrakeDiscTest(@TempDir Path tempDir) {
+    VirtualModel vsum = createDefaultVirtualModel(tempDir);
+    // adds transitively the brakesystem and the cad repository
+    addUncertaintyAnnotationRepository(vsum, tempDir);
+    addBrakeDisc(vsum, tempDir);
+    addUncertainty(vsum, tempDir);
+    // Assertions
+    // .assertTrue(assertView(getDefaultView(vsum,
+    // List.of(UncertaintyAnnotationRepository.class)), (View v) -> {
+
+    // return
+    // v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+    // .getUncertainties().size() == 1;
+
+    // }));
+    Assertions
+        .assertTrue(assertView(getDefaultView(vsum, List.of(Brakesystem.class, CADRepository.class)), (View v) -> {
 
           BrakeDisk brakeDisk = (BrakeDisk) v.getRootObjects(Brakesystem.class).iterator().next()
               .getBrakeComponents().get(0);
@@ -87,6 +112,27 @@ public class VSUMExampleTest {
           return brakeDisk.getDiameterInMM() == circle.getRadius() * 2;
 
         }));
+  }
+
+  private void addUncertainty(VirtualModel vsum, Path projectPath) {
+    CommittableView view = getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
+        .withChangeDerivingTrait();
+    modifyView(view, (CommittableView v) -> {
+      var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
+      uncertaintyLocation.setLocation(UncertaintyLocationType.PARAMETER);
+      uncertaintyLocation.setSpecification("Diameter");
+      // uncertaintyLocation.getReferencesComponents()
+      // .add(v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents().get(0));
+      var uncertaintyObj = UncertaintyFactory.eINSTANCE.createUncertainty();
+      uncertaintyObj.setUncertaintyLocation(uncertaintyLocation);
+      uncertaintyObj.setKind(UncertaintyKind.MEASUREMENT_UNCERTAINTY);
+      uncertaintyObj.setReducability(ReducabilityLevel.UNKNOWN);
+      uncertaintyObj.setNature(UncertaintyNature.ALEATORY);
+
+      v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+          .getUncertainties().add(uncertaintyObj);
+    });
+
   }
 
   private void addBrakesystem(VirtualModel vsum, Path projectPath) {
