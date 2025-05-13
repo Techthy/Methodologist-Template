@@ -31,3 +31,26 @@ routine createAndRegisterRoot(brakesystem::Brakesystem repo) {
         addCorrespondenceBetween(repo, mCad)
     }
 }
+
+reaction BrakeDiscInsertedIntoBrakesystem {
+    after element brakesystem::BrakeDisk inserted in brakesystem::Brakesystem[BrakeComponents]
+  // newValue refers to the newly inserted element of type System (provided by the reactions runtime environment at runtime)
+    call createAndInsertCircle(affectedEObject, newValue)
+}
+
+routine createAndInsertCircle(brakesystem::Brakesystem system, brakesystem::BrakeDisk disc) {
+    match {
+        // we do only want to create a new corresponding Root if we not have one already and the old one has, e.g., only been moved
+        require absence of cad::Circle corresponding to disc
+        val mCADRepository = retrieve cad::CADRepository corresponding to system
+    }
+    create {
+        // short way of using the respective Factory calls, which would be used in the update-block
+        val mCad = new cad::Circle
+    }
+    update {
+        mCad.setRadius(disc.getDiameterInMM() / 2)
+        mCADRepository.cadElements.add(mCad)
+        addCorrespondenceBetween(disc, mCad)
+    }
+}
