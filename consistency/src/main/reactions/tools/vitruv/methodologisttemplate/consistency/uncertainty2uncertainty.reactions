@@ -59,7 +59,9 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
             // question: is it correct that we also want to fetch a location that potentially links to more elements?
 
             val uncertaintyLocationsWithSameReference = locationList.filter[loc | loc.referencesComponents.contains(correspondingElement)];
+            
             if (uncertaintyLocationsWithSameReference.isEmpty()) {
+                // No matching UncertaintyLocation found -> create new Uncertainty and UncertaintyLocation
                 // Create a new UncertaintyLocation
                 val newUncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
                 newUncertaintyLocation.getReferencesComponents.add(correspondingElement);
@@ -75,9 +77,36 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
 
                 addCorrespondenceBetween(newUncertainty, sourceUncertainty);
                 annotationRepository.getUncertainties.add(newUncertainty);
-            }
+            } else {
+                var found = false;
+                // One or more Location(s) exists, check if it's conntaining uncertainty is the same as the sourceUncertainty
+                for (uncertantiesWithSameLocation : uncertaintyLocationsWithSameReference) {
+                    val containingUncertainty = uncertantiesWithSameLocation.eContainer() as Uncertainty;
+                    if (containingUncertainty.kind == sourceUncertainty.kind &&
+                        containingUncertainty.reducability == sourceUncertainty.reducability &&
+                        containingUncertainty.nature == sourceUncertainty.nature) {
+                        // The same Uncertainty already exists, do nothing
+                        found = true;
+                    } 
+                    
+                }
+                if (!found) {
+                        // Different Uncertainty found, create a new one and new UncertaintyLocation
+                        val newUncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
+                        newUncertaintyLocation.getReferencesComponents.add(correspondingElement);
+                        newUncertaintyLocation.setLocation(location.getLocation());
+                        newUncertaintyLocation.setSpecification(location.getSpecification());
 
-        
+                        val newUncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
+                        newUncertainty.setKind(sourceUncertainty.getKind());
+                        newUncertainty.setReducability(sourceUncertainty.getReducability());
+                        newUncertainty.setNature(sourceUncertainty.getNature());
+                        newUncertainty.setUncertaintyLocation(newUncertaintyLocation);
+
+                        addCorrespondenceBetween(newUncertainty, sourceUncertainty);
+                        annotationRepository.getUncertainties.add(newUncertainty);
+                }
+            }            
         }
     }
 }
