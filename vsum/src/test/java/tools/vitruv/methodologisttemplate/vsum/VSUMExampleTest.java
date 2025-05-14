@@ -30,12 +30,14 @@ import uncertainty.UncertaintyAnnotationRepository;
 import cad.CADElement;
 import cad.CADRepository;
 import cad.Circle;
+import cad.CadFactory;
 import uncertainty.UncertaintyFactory;
 import uncertainty.UncertaintyKind;
 import uncertainty.UncertaintyLocationType;
 import uncertainty.UncertaintyNature;
 import mir.reactions.uncertainty2uncertainty.Uncertainty2uncertaintyChangePropagationSpecification;
 import mir.reactions.brakesystem2cad.Brakesystem2cadChangePropagationSpecification;
+import mir.reactions.cad2brakesystem.Cad2brakesystemChangePropagationSpecification;
 import tools.vitruv.change.propagation.ChangePropagationMode;
 import tools.vitruv.change.testutils.TestUserInteraction;
 import tools.vitruv.framework.views.CommittableView;
@@ -425,6 +427,32 @@ public class VSUMExampleTest {
   }
 
   @Test
+  void CADRepositoryInsertationAndPropagationTest(@TempDir Path tempDir) {
+    VirtualModel vsum = createDefaultVirtualModel(tempDir);
+    addCADRepository(vsum, tempDir);
+    // assert that the directly added System is present
+    Assertions.assertEquals(1,
+        getDefaultView(vsum, List.of(CADRepository.class)).getRootObjects().size());
+    Assertions.assertEquals(1,
+        getDefaultView(vsum, List.of(Brakesystem.class)).getRootObjects().size());
+  }
+
+  @Test
+  void insertCircleIntoCADRepositoryTest(@TempDir Path tempDir) {
+    VirtualModel vsum = createDefaultVirtualModel(tempDir);
+    addCADRepository(vsum, tempDir);
+    addCircle(vsum, tempDir);
+    Assertions
+        .assertTrue(assertView(getDefaultView(vsum, List.of(Brakesystem.class, CADRepository.class)), (View v) -> {
+          BrakeDisk brakeDisk = (BrakeDisk) v.getRootObjects(Brakesystem.class).iterator().next()
+              .getBrakeComponents().get(0);
+          Circle circle = (Circle) v.getRootObjects(CADRepository.class).iterator().next().getCadElements().get(0);
+          return brakeDisk.getDiameterInMM() == circle.getRadius() * 2;
+
+        }));
+  }
+
+  @Test
   void insertBrakeDiscIntoBrakesystemTest(@TempDir Path tempDir) {
     VirtualModel vsum = createDefaultVirtualModel(tempDir);
     addBrakesystem(vsum, tempDir);
@@ -462,6 +490,26 @@ public class VSUMExampleTest {
           .getBrakeComponents().get(0).setSpecificationType(randomtype);
       v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
           .getUncertainties().add(uncertaintyObj);
+    });
+  }
+
+  private void addCADRepository(VirtualModel vsum, Path projectPath) {
+    CommittableView view = getDefaultView(vsum, List.of(CADRepository.class))
+        .withChangeDerivingTrait();
+    modifyView(view, (CommittableView v) -> {
+      v.registerRoot(
+          CadFactory.eINSTANCE.createCADRepository(),
+          URI.createFileURI(projectPath.toString() + "/example.model"));
+    });
+  }
+
+  private void addCircle(VirtualModel vsum, Path projectPath) {
+    CommittableView view = getDefaultView(vsum, List.of(CADRepository.class))
+        .withChangeDerivingTrait();
+    modifyView(view, (CommittableView v) -> {
+      var circle = CadFactory.eINSTANCE.createCircle();
+      circle.setRadius(60);
+      v.getRootObjects(CADRepository.class).iterator().next().getCadElements().add(circle);
     });
   }
 
@@ -511,7 +559,7 @@ public class VSUMExampleTest {
         .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))
         .withChangePropagationSpecification(new Brakesystem2cadChangePropagationSpecification())
         .withChangePropagationSpecification(new Uncertainty2uncertaintyChangePropagationSpecification())
-
+        .withChangePropagationSpecification(new Cad2brakesystemChangePropagationSpecification())
         .buildAndInitialize();
     model.setChangePropagationMode(ChangePropagationMode.TRANSITIVE_CYCLIC);
     return model;

@@ -1,0 +1,47 @@
+
+import java.io.File;
+
+import "http://www.example.org/brakesystem" as brakesystemModel
+import "http://www.example.org/cad" as cadModel
+
+reactions: cad2brakesystem
+in reaction to changes in cadModel
+execute actions in brakesystem
+
+reaction BrakesystemInsertedAsRoot {
+    after element cadModel::CADRepository inserted as root
+    call createAndRegisterRoot(newValue)
+}
+
+routine createAndRegisterRoot(cadModel::CADRepository repo) {
+    match {
+        require absence of brakesystemModel::Brakesystem corresponding to repo
+    }
+    create {
+        val mSystem = new brakesystemModel::Brakesystem
+    }
+    update {
+        persistProjectRelative(repo, mSystem, new File("").toString() + "example.brakesystem")
+        addCorrespondenceBetween(repo, mSystem)
+    }
+}
+
+reaction CircleInsertedIntoCADRepository {
+    after element cadModel::Circle inserted in cadModel::CADRepository[cadElements]
+    call createAndInsertBrakeDisc(affectedEObject, newValue)
+}
+
+routine createAndInsertBrakeDisc(cadModel::CADRepository repo, cadModel::Circle circle) {
+    match {
+        require absence of brakesystemModel::BrakeDisk corresponding to circle
+        val mBrakesystem = retrieve brakesystemModel::Brakesystem corresponding to repo
+    }
+    create {
+        val mBrakeDisk = new brakesystemModel::BrakeDisk
+    }
+    update {
+        mBrakeDisk.setDiameterInMM(circle.getRadius() * 2)
+        mBrakesystem.brakeComponents.add(mBrakeDisk)
+        addCorrespondenceBetween(mBrakeDisk, circle)
+    }
+}
