@@ -78,19 +78,14 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
                 addCorrespondenceBetween(newUncertainty, sourceUncertainty);
                 annotationRepository.getUncertainties.add(newUncertainty);
             } else {
-                var found = false;
-                // One or more Location(s) exists, check if it's conntaining uncertainty is the same as the sourceUncertainty
-                for (uncertantiesWithSameLocation : uncertaintyLocationsWithSameReference) {
-                    val containingUncertainty = uncertantiesWithSameLocation.eContainer() as Uncertainty;
-                    if (containingUncertainty.kind == sourceUncertainty.kind &&
-                        containingUncertainty.reducability == sourceUncertainty.reducability &&
-                        containingUncertainty.nature == sourceUncertainty.nature) {
-                        // The same Uncertainty already exists, do nothing
-                        found = true;
-                    } 
-                    
-                }
-                if (!found) {
+                // Check if there is any existing Uncertainty that matches sourceUncertainty
+                val existingMatch = uncertaintyLocationsWithSameReference.findFirst[ 
+                    val containingUncertainty = eContainer as Uncertainty
+                    containingUncertainty.kind == sourceUncertainty.kind &&
+                    containingUncertainty.reducability == sourceUncertainty.reducability &&
+                    containingUncertainty.nature == sourceUncertainty.nature
+                ]
+                if (existingMatch === null) {
                         // Different Uncertainty found, create a new one and new UncertaintyLocation
                         val newUncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
                         newUncertaintyLocation.getReferencesComponents.add(correspondingElement);
