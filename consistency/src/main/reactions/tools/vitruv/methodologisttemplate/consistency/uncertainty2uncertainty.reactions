@@ -16,7 +16,7 @@ reaction ReferenceInsertedIntoUncertaintyLocation {
     after element EObject inserted in uncertaintyModel::UncertaintyLocation[referencesComponents]
     call createCorrespondingUncertaintyReference(affectedEObject, newValue)
 }
-routine createCorrespondingUncertaintyReference(uncertainty::UncertaintyLocation location, EObject referencedElement) {
+routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLocation location, EObject referencedElement) {
     match {
         val correspondingReferenceList = retrieve many EObject corresponding to referencedElement
     }
@@ -45,6 +45,18 @@ routine createCorrespondingUncertaintyReference(uncertainty::UncertaintyLocation
         //      }
         //      newUncertainty = createNewUncertainty(corrElement, sourceUncertainty)
         //      listOfNewCorrespondingUncertainties.add(newUncertainty)
+
+
+        // Xtend Code:
+        val sourceUncertainty = location.eContainer();
+
+        for (correspondingElement : correspondingReferenceList) {
+            val annotationRepository = sourceUncertainty.eContainer() as UncertaintyAnnotationRepository; 
+            val uncertaintyList = annotationRepository.uncertainties as List<Uncertainty>;
+            val locationList = uncertaintyList.map[uncertaintyLocation].toList as List<UncertaintyLocation>;
+
+        }
+
 
     }
 }
