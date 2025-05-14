@@ -68,3 +68,17 @@ routine createCorrespondingUncertaintyReference(uncertainty::UncertaintyLocation
         mUncertaintyLocation.referencesComponents.add(correspondingReference)
     }
 }
+
+reaction UncertaintyRemoved {
+    after element uncertainty::Uncertainty deleted
+    call deleteUncertainty(affectedEObject)
+}
+routine deleteUncertainty(uncertainty::Uncertainty uncertainty) {
+    match {
+        val mUncertainty = retrieve uncertainty::Uncertainty corresponding to uncertainty
+    }
+    update {
+        removeObject(mUncertainty)
+        removeCorrespondenceBetween(uncertainty, mUncertainty)
+    }
+}
