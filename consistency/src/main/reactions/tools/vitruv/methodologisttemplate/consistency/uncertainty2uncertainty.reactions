@@ -19,15 +19,41 @@ reaction ReferenceInsertedIntoUncertaintyLocation {
     call createCorrespondingUncertaintyReference(affectedEObject, newValue)
 }
 
-routine createCorrespondingUncertaintyReference(uncertainty::UncertaintyLocation location, EObject reference) {
+routine createCorrespondingUncertaintyReference(uncertainty::UncertaintyLocation location, EObject referencedElement) {
     match {
-        val correspondingReferenceList = retrieve many EObject corresponding to reference
-        
-        for (correspondingReference : correspondingReferenceList) {
-
-        }
+        val correspondingReferenceList = retrieve many EObject corresponding to referencedElement
     }
     update {
+        // get Container of UncertaintyLocation::Uncertainty sourceUncertainty = location.getContainer()
+        // get Container of Uncertainty::UncertantyAnnotationRepository
+        // get List of All Uncertanties::List[Uncertainty]
+        // get List of All UncertantyLocations::Iterable[UncertaintyLocation]
+
+        // outer:
+        // for corrElement in correspondingReferenceList:
+        //      get Container of Uncertainty::UncertantyAnnotationRepository
+        //      get List of All Uncertainties::List[Uncertainty]
+        //      get List of All UncertaintyLocations::Iterable[UncertaintyLocation]
+
+        //      uncertantiesWithSameLocation = uncertaintyLocations.filter(loc => loc.referencedComponents.equals(listOf(corrElement))
+        //      if (uncertantiesWithSameLocation.isEmpty()) { createNewUncertainty(corrElement, sourceUncertainty) }
+        //      else {
+        //          for uncertantyWithSameLocation in uncertantiesWithSameLocation {
+        //              if (uncertantyWithSameLocation.equals(sourceUncertainty) {
+        //                  continue outer;
+        //              }
+        //          }
+        //      }
+        //      createNewUncertainty(corrElement, sourceUncertainty)
+
+        //      for UncertaintyLocation loc in listOfUncertaintyLocations:
+        //          Uncertainty containingUncertainty = loc.getContainer()
+        //          referencedElements = loc.referencesComponents
+        //          if referencesComponents.isSubsetOf(correspondingReferenceList.asSet()) and containingUncertainty.parameterEquals(sourceUncertainty):
+        //              continue
+        //          newUncertainty = createUncertaintyWithValues(parametersOfSourceUncertainty)
+        // Remove all Elements from locationsList where location.referencesComponents not contains any Element from correspondingReferencesList
+
     }
-}A
+}
 
