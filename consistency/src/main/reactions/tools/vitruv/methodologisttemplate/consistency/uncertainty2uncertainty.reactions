@@ -4,6 +4,8 @@ import java.util.List;
 import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyLocation;
+import uncertainty.UncertaintyFactory;
+
 
 import "http://www.example.org/uncertainty" as uncertaintyModel
 
@@ -48,16 +50,35 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
 
 
         // Xtend Code:
-        val sourceUncertainty = location.eContainer();
-
+        val sourceUncertainty = location.eContainer() as Uncertainty;
         for (correspondingElement : correspondingReferenceList) {
             val annotationRepository = sourceUncertainty.eContainer() as UncertaintyAnnotationRepository; 
             val uncertaintyList = annotationRepository.uncertainties as List<Uncertainty>;
             val locationList = uncertaintyList.map[uncertaintyLocation].toList as List<UncertaintyLocation>;
+        
+            // question: is it correct that we also want to fetch a location that potentially links to more elements?
 
+            val uncertaintyLocationsWithSameReference = locationList.filter[loc | loc.referencesComponents.contains(correspondingElement)];
+            if (uncertaintyLocationsWithSameReference.isEmpty()) {
+                // Create a new UncertaintyLocation
+                val newUncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
+                newUncertaintyLocation.getReferencesComponents.add(correspondingElement);
+                newUncertaintyLocation.setLocation(location.getLocation());
+                newUncertaintyLocation.setSpecification(location.getSpecification());
+
+                // Create a new Uncertainty
+                val newUncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
+                newUncertainty.setKind(sourceUncertainty.getKind());
+                newUncertainty.setReducability(sourceUncertainty.getReducability());
+                newUncertainty.setNature(sourceUncertainty.getNature());
+                newUncertainty.setUncertaintyLocation(newUncertaintyLocation);
+
+                addCorrespondenceBetween(newUncertainty, sourceUncertainty);
+                annotationRepository.getUncertainties.add(newUncertainty);
+            }
+
+        
         }
-
-
     }
 }
 
