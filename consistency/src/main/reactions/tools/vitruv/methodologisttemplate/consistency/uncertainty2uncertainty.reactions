@@ -29,14 +29,16 @@ routine createCorrespondingUncertaintyReference(uncertainty::UncertaintyLocation
         // get List of All Uncertanties::List[Uncertainty]
         // get List of All UncertantyLocations::Iterable[UncertaintyLocation]
 
+        // listOfNewCorrespondingUncertainties = []
+
         // outer:
         // for corrElement in correspondingReferenceList:
-        //      get Container of Uncertainty::UncertantyAnnotationRepository
+        //      get Container of sourceUncertainty Uncertainty::UncertantyAnnotationRepository
         //      get List of All Uncertainties::List[Uncertainty]
         //      get List of All UncertaintyLocations::Iterable[UncertaintyLocation]
 
         //      uncertantiesWithSameLocation = uncertaintyLocations.filter(loc => loc.referencedComponents.equals(listOf(corrElement))
-        //      if (uncertantiesWithSameLocation.isEmpty()) { createNewUncertainty(corrElement, sourceUncertainty) }
+        //      if (uncertantiesWithSameLocation.isEmpty()) { newUncertainty= createNewUncertainty(corrElement, sourceUncertainty), continue, listOfNewCorrespondingUncertainties.add(newUncertainty) }
         //      else {
         //          for uncertantyWithSameLocation in uncertantiesWithSameLocation {
         //              if (uncertantyWithSameLocation.equals(sourceUncertainty) {
@@ -44,15 +46,8 @@ routine createCorrespondingUncertaintyReference(uncertainty::UncertaintyLocation
         //              }
         //          }
         //      }
-        //      createNewUncertainty(corrElement, sourceUncertainty)
-
-        //      for UncertaintyLocation loc in listOfUncertaintyLocations:
-        //          Uncertainty containingUncertainty = loc.getContainer()
-        //          referencedElements = loc.referencesComponents
-        //          if referencesComponents.isSubsetOf(correspondingReferenceList.asSet()) and containingUncertainty.parameterEquals(sourceUncertainty):
-        //              continue
-        //          newUncertainty = createUncertaintyWithValues(parametersOfSourceUncertainty)
-        // Remove all Elements from locationsList where location.referencesComponents not contains any Element from correspondingReferencesList
+        //      newUncertainty = createNewUncertainty(corrElement, sourceUncertainty)
+        //      listOfNewCorrespondingUncertainties.add(newUncertainty)
 
     }
 }
