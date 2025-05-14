@@ -5,7 +5,6 @@ import uncertainty.UncertaintyFactory;
 
 import java.nio.file.Path;
 import java.util.function.Consumer;
-import mir.reactions.uncertainty2brakesystem.Uncertainty2brakesystemChangePropagationSpecification;
 import tools.vitruv.change.testutils.TestUserInteraction;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
@@ -28,7 +27,6 @@ public class VSUMExample {
     return new VirtualModelBuilder()
         .withStorageFolder(Path.of("vsumexample"))
         .withUserInteractorForResultProvider(new TestUserInteraction.ResultProvider(new TestUserInteraction()))
-        .withChangePropagationSpecifications(new Uncertainty2brakesystemChangePropagationSpecification())
         .buildAndInitialize();
   }
 
