@@ -1,24 +1,21 @@
 
 import java.io.File;
+import java.util.List;
+import uncertainty.UncertaintyAnnotationRepository;
+import uncertainty.Uncertainty;
+import uncertainty.UncertaintyLocation;
 
-import "http://www.example.org/uncertainty" as uncertainty
+import "http://www.example.org/uncertainty" as uncertaintyModel
 
 
 reactions: uncertainty2uncertainty
-in reaction to changes in uncertainty
-execute actions in uncertainty
-
-
-reaction UncertaintyInserted {
-    after element uncertainty::Uncertainty inserted in uncertainty::UncertaintyAnnotationRepository[uncertainties]
-    call createCorrespondingUncertainty(affectedEObject, newValue)
-}
+in reaction to changes in uncertaintyModel
+execute actions in uncertaintyModel
 
 reaction ReferenceInsertedIntoUncertaintyLocation {
-    after element EObject inserted in uncertainty::UncertaintyLocation[referencWesComponents]
+    after element EObject inserted in uncertaintyModel::UncertaintyLocation[referencesComponents]
     call createCorrespondingUncertaintyReference(affectedEObject, newValue)
 }
-
 routine createCorrespondingUncertaintyReference(uncertainty::UncertaintyLocation location, EObject referencedElement) {
     match {
         val correspondingReferenceList = retrieve many EObject corresponding to referencedElement
