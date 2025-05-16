@@ -10,47 +10,59 @@ execute actions in cad
 
 reaction BrakesystemInsertedAsRoot {
     after element brakesystem::Brakesystem inserted as root
-  // newValue refers to the newly inserted element of type System (provided by the reactions runtime environment at runtime)
     call createAndRegisterRoot(newValue)
 }
 
 routine createAndRegisterRoot(brakesystem::Brakesystem repo) {
     match {
-// import mir.reactions.model2Model2.Model2Model2ChangePropagationSpecification;
-        // we do only want to create a new corresponding Root if we not have one already and the old one has, e.g., only been moved
         require absence of cad::CADRepository corresponding to repo
     }
     create {
-        // short way of using the respective Factory calls, which would be used in the update-block
         val mCad = new cad::CADRepository
     }
     update {
-        // save the newly created Root element at the specified location
         persistProjectRelative(repo, mCad, new File("").toString() + "example.cad")
-        // register the correspondence so we can find mRoot later, if we modify something in system and need to adapt mRoot accordingly
         addCorrespondenceBetween(repo, mCad)
     }
 }
 
 reaction BrakeDiscInsertedIntoBrakesystem {
     after element brakesystem::BrakeDisk inserted in brakesystem::Brakesystem[BrakeComponents]
-  // newValue refers to the newly inserted element of type System (provided by the reactions runtime environment at runtime)
     call createAndInsertCircle(affectedEObject, newValue)
 }
 
 routine createAndInsertCircle(brakesystem::Brakesystem system, brakesystem::BrakeDisk disc) {
     match {
-        // we do only want to create a new corresponding Root if we not have one already and the old one has, e.g., only been moved
         require absence of cad::Circle corresponding to disc
         val mCADRepository = retrieve cad::CADRepository corresponding to system
     }
     create {
-        // short way of using the respective Factory calls, which would be used in the update-block
         val mCad = new cad::Circle
     }
     update {
         mCad.setRadius(disc.getDiameterInMM() / 2)
         mCADRepository.cadElements.add(mCad)
         addCorrespondenceBetween(disc, mCad)
+    }
+}
+
+reaction BrakePadInsertedIntoBrakesystem {
+    after element brakesystem::BrakePad inserted in brakesystem::Brakesystem[BrakeComponents]
+    call createAndInsertRectangle(affectedEObject, newValue)
+}
+
+routine createAndInsertRectangle(brakesystem::Brakesystem system, brakesystem::BrakePad pad) {
+    match {
+        require absence of cad::Rectangle corresponding to pad
+        val mCADRepository = retrieve cad::CADRepository corresponding to system
+    }
+    create {
+        val mCad = new cad::Rectangle
+    }
+    update {
+        mCad.setSideA(pad.getWidthInMM())
+        mCad.setSideB(pad.getHeightInMM())
+        mCADRepository.cadElements.add(mCad)
+        addCorrespondenceBetween(pad, mCad)
     }
 }
