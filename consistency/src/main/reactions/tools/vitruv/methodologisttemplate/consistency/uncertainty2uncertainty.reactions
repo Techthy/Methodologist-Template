@@ -64,8 +64,8 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
                 // Create a new UncertaintyLocation
                 val newUncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
                 newUncertaintyLocation.getReferencesComponents.add(correspondingElement);
-                //newUncertaintyLocation.setLocation(location.getLocation());
-                //newUncertaintyLocation.setSpecification(location.getSpecification());
+                newUncertaintyLocation.setLocation(location.getLocation());
+                newUncertaintyLocation.setSpecification(location.getSpecification() + " (copy)");
 
                 // Create a new Uncertainty
                 val newUncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
@@ -116,7 +116,13 @@ routine deleteCorrespondingUncertainties(uncertaintyModel::Uncertainty sourceUnc
         val uncertaintiesList = retrieve many uncertaintyModel::Uncertainty corresponding to sourceUncertainty
     }
     update {
-        
+        if (sourceUncertainty.getUncertaintyLocation() == null) {
+            System.out.println("NO SPECS" );
+        } else {
+            System.out.println("SPECS" + sourceUncertainty.getUncertaintyLocation().getSpecification());
+            System.out.println("SPECS" + sourceUncertainty.getUncertaintyLocation().getReferencesComponents().get(0)); 
+
+        }
         for (correspondingUncertainty : uncertaintiesList) {
             removeObject(correspondingUncertainty);
             removeCorrespondenceBetween(sourceUncertainty, correspondingUncertainty);

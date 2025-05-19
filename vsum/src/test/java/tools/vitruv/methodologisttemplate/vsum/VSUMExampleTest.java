@@ -440,6 +440,14 @@ public class VSUMExampleTest {
     addBrakeDiscWithDiameter(vsum, tempDir, 120);
     System.out.println("UncertaintyAnnotationRepository created. \n");
 
+    // Assert: Exactly two uncertainties exist (one manually added, one propagated)
+    Assertions.assertTrue(assertView(getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)), (View v) -> {
+      System.out.println("Number of Uncertainties: "
+          + v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next().getUncertainties().size());
+      return v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+          .getUncertainties().size() == 0;
+    }));
+
     CommittableView view2 = getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
         .withChangeDerivingTrait();
     modifyView(view2, (CommittableView v) -> {
@@ -449,7 +457,7 @@ public class VSUMExampleTest {
           .findFirst().orElseThrow();
 
       var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
-      uncertaintyLocation.setLocation(UncertaintyLocationType.PARAMETER);
+      uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
       uncertaintyLocation.setSpecification("FromDisk");
       uncertaintyLocation.getReferencesComponents().add(brakeDisk);
 
