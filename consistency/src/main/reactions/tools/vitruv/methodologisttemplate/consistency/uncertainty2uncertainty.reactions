@@ -57,7 +57,6 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
             val locationList = uncertaintyList.map[uncertaintyLocation].toList as List<UncertaintyLocation>;
         
             // question: is it correct that we also want to fetch a location that potentially links to more elements?
-
             val uncertaintyLocationsWithSameReference = locationList.filter[loc | loc.referencesComponents.contains(correspondingElement)];
             
             if (uncertaintyLocationsWithSameReference.isEmpty()) {
@@ -65,8 +64,8 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
                 // Create a new UncertaintyLocation
                 val newUncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
                 newUncertaintyLocation.getReferencesComponents.add(correspondingElement);
-                newUncertaintyLocation.setLocation(location.getLocation());
-                newUncertaintyLocation.setSpecification(location.getSpecification());
+                //newUncertaintyLocation.setLocation(location.getLocation());
+                //newUncertaintyLocation.setSpecification(location.getSpecification());
 
                 // Create a new Uncertainty
                 val newUncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
@@ -105,4 +104,24 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
         }
     }
 }
+
+
+reaction UncertaintyDeleted {
+    after element uncertaintyModel::Uncertainty deleted
+    call deleteCorrespondingUncertainties(affectedEObject)
+}
+
+routine deleteCorrespondingUncertainties(uncertaintyModel::Uncertainty sourceUncertainty) {
+    match {
+        val uncertaintiesList = retrieve many uncertaintyModel::Uncertainty corresponding to sourceUncertainty
+    }
+    update {
+        
+        for (correspondingUncertainty : uncertaintiesList) {
+            removeObject(correspondingUncertainty);
+            removeCorrespondenceBetween(sourceUncertainty, correspondingUncertainty);
+        }
+    }
+}
+
 
