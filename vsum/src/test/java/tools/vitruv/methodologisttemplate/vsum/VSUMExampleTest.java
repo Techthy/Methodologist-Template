@@ -556,6 +556,45 @@ public class VSUMExampleTest {
               brakeComponents == 1 && CADElements == 1 && uncertaintyFromDisk2 == 2;
         }));
 
+    // Delete the second uncertainty
+    modifyView(getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
+        .withChangeDerivingTrait(), (CommittableView v) -> {
+
+          var uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+              .getUncertainties();
+
+          var uncertaintyToDelete = uncertainties.stream()
+              .filter(u -> u.getUncertaintyLocation().getSpecification().equals("FromDisk2"));
+
+          v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+              .getUncertainties().remove(uncertaintyToDelete.findAny().get());
+
+          // Trigger propagation
+          v.getRootObjects(Brakesystem.class).iterator().next()
+              .getBrakeComponents().get(0).setSpecificationType("test1");
+        });
+
+    // FINAL ASSERTION: No uncertainties should exist, but the cirlce and the brake
+    // disk
+    // Assert: There should be only two uncertainties left, one for the BrakeDisk
+    // and one for the Circle
+    // Both the brake disk and the circle should be still present
+    Assertions.assertTrue(assertView(getDefaultView(vsum,
+        List.of(UncertaintyAnnotationRepository.class, Brakesystem.class, CADRepository.class)), (View v) -> {
+          long uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+              .getUncertainties().size();
+
+          long brakeComponents = v.getRootObjects(Brakesystem.class).iterator().next()
+              .getBrakeComponents().size();
+          System.out.println("brakeComponents: " + brakeComponents);
+
+          long CADElements = v.getRootObjects(CADRepository.class).iterator().next()
+              .getCadElements().size();
+          System.out.println("CADElements: " + CADElements);
+
+          return brakeComponents == 1 && CADElements == 1 && uncertainties == 0;
+        }));
+
   }
 
   @Test
