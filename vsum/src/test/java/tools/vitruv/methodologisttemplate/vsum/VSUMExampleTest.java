@@ -410,7 +410,7 @@ public class VSUMExampleTest {
   }
 
   @Test
-  void addUncertaintyAndRemovePropagation(@TempDir Path tempDir) {
+  void addUncertaintyAndRemove(@TempDir Path tempDir) {
     System.out.println("****************************************************************************");
     System.out.println("addUncertaintyAndRemovePropagation Test started. \n");
 
@@ -462,6 +462,7 @@ public class VSUMExampleTest {
       uncertainty.setKind(UncertaintyKind.MEASUREMENT_UNCERTAINTY);
       uncertainty.setReducability(ReducabilityLevel.UNKNOWN);
       uncertainty.setNature(UncertaintyNature.ALEATORY);
+      uncertainty.setSetManually(true);
 
       // Second uncertainty
       var uncertaintyLocationTwo = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
@@ -473,6 +474,8 @@ public class VSUMExampleTest {
       uncertaintyTwo.setUncertaintyLocation(uncertaintyLocationTwo);
       uncertaintyTwo.setKind(UncertaintyKind.BELIEF_UNCERTAINTY);
       uncertaintyTwo.setReducability(ReducabilityLevel.UNKNOWN);
+      uncertaintyTwo.setNature(UncertaintyNature.ALEATORY);
+      uncertaintyTwo.setSetManually(true);
 
       // Trigger propagation
       brakeDisk.setSpecificationType(generateRandomString());
