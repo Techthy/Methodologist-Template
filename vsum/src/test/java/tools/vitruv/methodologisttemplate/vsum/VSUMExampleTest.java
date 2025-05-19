@@ -1,8 +1,5 @@
 package tools.vitruv.methodologisttemplate.vsum;
 
-import tools.vitruv.framework.vsum.VirtualModelBuilder;
-import tools.vitruv.framework.vsum.internal.InternalVirtualModel;
-
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -10,40 +7,39 @@ import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.apache.logging.log4j.core.config.plugins.PluginAliases;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import brakesystem.BrakeDisk;
 import brakesystem.Brakesystem;
 import brakesystem.BrakesystemFactory;
-import uncertainty.ReducabilityLevel;
-import uncertainty.Uncertainty;
-import uncertainty.UncertaintyAnnotationRepository;
-import cad.CADElement;
 import cad.CADRepository;
-import cad.Circle;
 import cad.CadFactory;
-import uncertainty.UncertaintyFactory;
-import uncertainty.UncertaintyKind;
-import uncertainty.UncertaintyLocationType;
-import uncertainty.UncertaintyNature;
-import mir.reactions.uncertainty2uncertainty.Uncertainty2uncertaintyChangePropagationSpecification;
+import cad.Circle;
 import mir.reactions.brakesystem2cad.Brakesystem2cadChangePropagationSpecification;
 import mir.reactions.cad2brakesystem.Cad2brakesystemChangePropagationSpecification;
+import mir.reactions.uncertainty2uncertainty.Uncertainty2uncertaintyChangePropagationSpecification;
 import tools.vitruv.change.propagation.ChangePropagationMode;
 import tools.vitruv.change.testutils.TestUserInteraction;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.views.ViewTypeFactory;
 import tools.vitruv.framework.vsum.VirtualModel;
+import tools.vitruv.framework.vsum.VirtualModelBuilder;
+import tools.vitruv.framework.vsum.internal.InternalVirtualModel;
+import uncertainty.ReducabilityLevel;
+import uncertainty.Uncertainty;
+import uncertainty.UncertaintyAnnotationRepository;
+import uncertainty.UncertaintyFactory;
+import uncertainty.UncertaintyKind;
+import uncertainty.UncertaintyLocationType;
+import uncertainty.UncertaintyNature;
 
 /**
  * This class provides an example how to define and use a VSUM.
@@ -415,39 +411,38 @@ public class VSUMExampleTest {
 
   @Test
   void addUncertaintyAndRemovePropagation(@TempDir Path tempDir) {
+    System.out.println("****************************************************************************");
+    System.out.println("addUncertaintyAndRemovePropagation Test started. \n");
+
     VirtualModel vsum = createDefaultVirtualModel(tempDir);
 
-    CommittableView brakeSystemView = getDefaultView(vsum, List.of(Brakesystem.class))
-        .withChangeDerivingTrait();
-    CommittableView cadRepositoryView = getDefaultView(vsum, List.of(CADRepository.class))
-        .withChangeDerivingTrait();
-    CommittableView uncertaintyView = getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
-        .withChangeDerivingTrait();
+    // Prepare models and insert their respective root objects
+    modifyView(getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
+        .withChangeDerivingTrait(), (CommittableView v) -> {
+          v.registerRoot(
+              UncertaintyFactory.eINSTANCE.createUncertaintyAnnotationRepository(),
+              URI.createFileURI(tempDir.toString() + "/uncertainty.model"));
 
-    modifyView(uncertaintyView, (CommittableView v) -> {
-      v.registerRoot(
-          UncertaintyFactory.eINSTANCE.createUncertaintyAnnotationRepository(),
-          URI.createFileURI(tempDir.toString() + "/uncertainty.model"));
-
-    });
-
-    modifyView(brakeSystemView, (CommittableView v) -> {
+        });
+    // Reaction will create a CADRepository
+    modifyView(getDefaultView(vsum, List.of(Brakesystem.class)).withChangeDerivingTrait(), (CommittableView v) -> {
       v.registerRoot(
           BrakesystemFactory.eINSTANCE.createBrakesystem(),
           URI.createFileURI(tempDir.toString() + "/brakesystem.model"));
     });
 
+    // Add a BrakeDisk that in turn (by reactions) creates a Circle
     addBrakeDiscWithDiameter(vsum, tempDir, 120);
-    System.out.println("UncertaintyAnnotationRepository created. \n");
 
-    // Assert: Exactly two uncertainties exist (one manually added, one propagated)
+    // Assert: No uncertainties exist
+    // This is a workaround since otherwise we encouter dangling references
+    // The reason for this is unknown
     Assertions.assertTrue(assertView(getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)), (View v) -> {
-      System.out.println("Number of Uncertainties: "
-          + v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next().getUncertainties().size());
       return v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
-          .getUncertainties().size() == 0;
+          .getUncertainties().isEmpty();
     }));
 
+    // Add two uncertainties to the brake disk
     CommittableView view2 = getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
         .withChangeDerivingTrait();
     modifyView(view2, (CommittableView v) -> {
@@ -456,9 +451,10 @@ public class VSUMExampleTest {
           .filter(d -> d.getDiameterInMM() == 120)
           .findFirst().orElseThrow();
 
+      // First uncertainty
       var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
       uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
-      uncertaintyLocation.setSpecification("FromDisk");
+      uncertaintyLocation.setSpecification("FromDisk1");
       uncertaintyLocation.getReferencesComponents().add(brakeDisk);
 
       var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
@@ -467,93 +463,98 @@ public class VSUMExampleTest {
       uncertainty.setReducability(ReducabilityLevel.UNKNOWN);
       uncertainty.setNature(UncertaintyNature.ALEATORY);
 
+      // Second uncertainty
+      var uncertaintyLocationTwo = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
+      uncertaintyLocationTwo.setLocation(UncertaintyLocationType.OUTCOME);
+      uncertaintyLocationTwo.setSpecification("FromDisk2");
+      uncertaintyLocationTwo.getReferencesComponents().add(brakeDisk);
+
+      var uncertaintyTwo = UncertaintyFactory.eINSTANCE.createUncertainty();
+      uncertaintyTwo.setUncertaintyLocation(uncertaintyLocationTwo);
+      uncertaintyTwo.setKind(UncertaintyKind.BELIEF_UNCERTAINTY);
+      uncertaintyTwo.setReducability(ReducabilityLevel.UNKNOWN);
+
       // Trigger propagation
       brakeDisk.setSpecificationType(generateRandomString());
 
       v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next().getUncertainties().add(uncertainty);
+      v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next().getUncertainties().add(uncertaintyTwo);
     });
 
-    System.out.println("Uncertainty created. \n");
-
-    // Assert: Exactly two uncertainties exist (one manually added, one propagated)
+    // Assert that four uncertainties exist;
+    // two belonging to the brake disk and two belonging to the circle exist
     Assertions.assertTrue(assertView(getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)), (View v) -> {
-      System.out.println("Number of Uncertainties: "
-          + v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next().getUncertainties().size());
-      return v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
-          .getUncertainties().size() == 2;
+      var uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next().getUncertainties();
+      System.out.println("Number of Uncertainties: " + uncertainties.size());
+
+      long brakeDiskUncertainties = uncertainties.stream()
+          .filter(u -> u.getUncertaintyLocation().getReferencesComponents().stream()
+              .anyMatch(c -> c instanceof BrakeDisk && ((BrakeDisk) c).getDiameterInMM() == 120))
+          .count();
+      System.out.println("brakeDiskUncertainties: " + brakeDiskUncertainties);
+
+      long circleUncertainties = uncertainties.stream()
+          .filter(u -> u.getUncertaintyLocation().getReferencesComponents().stream()
+              .anyMatch(c -> c instanceof Circle && ((Circle) c).getRadius() == 60))
+          .count();
+      System.out.println("circleUncertainties: " + circleUncertainties);
+      return brakeDiskUncertainties == 2 && circleUncertainties == 2;
     }));
 
-    CommittableView lel = getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-        .withChangeDerivingTrait();
-    modifyView(lel, (CommittableView v) -> {
-      System.out.println("UNCERTAINTY LOCATION REF: "
-          + v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
-              .getUncertainties().get(0).getUncertaintyLocation().getReferencesComponents().get(0));
+    // Delete the first uncertainty
+    modifyView(getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
+        .withChangeDerivingTrait(), (CommittableView v) -> {
 
-      v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
-          .getUncertainties().remove(0);
-      System.out.println("Uncertainty removed");
-      v.getRootObjects(Brakesystem.class).iterator().next()
-          .getBrakeComponents().get(0).setSpecificationType("test");
-    });
+          var uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+              .getUncertainties();
+          var uncertaintyToDelete = uncertainties.stream()
+              .filter(u -> u.getUncertaintyLocation().getSpecification().equals("FromDisk1"));
 
+          v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+              .getUncertainties().remove(uncertaintyToDelete.findAny().get());
+
+          // Trigger propagation
+          v.getRootObjects(Brakesystem.class).iterator().next()
+              .getBrakeComponents().get(0).setSpecificationType("test");
+        });
+
+    // Assert: There should be only two uncertainties left, one for the BrakeDisk
+    // and one for the Circle
+    // Both the brake disk and the circle should be still present
     Assertions.assertTrue(assertView(getDefaultView(vsum,
-        List.of(UncertaintyAnnotationRepository.class)), (View v) -> {
+        List.of(UncertaintyAnnotationRepository.class, Brakesystem.class, CADRepository.class)), (View v) -> {
           var uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
               .getUncertainties();
 
-          var locations = uncertainties.stream()
-              .map(u -> u.getUncertaintyLocation())
-              .toList();
-          System.out.println("Number of Uncertainties: " + uncertainties.size());
-          System.out.println("Number of locations: " + locations.size());
-          return locations.size() == 0 && uncertainties.size() == 0;
+          long brakeDiskUncertainties = uncertainties.stream()
+              .filter(u -> u.getUncertaintyLocation().getReferencesComponents().stream()
+                  .anyMatch(c -> c instanceof BrakeDisk && ((BrakeDisk) c).getDiameterInMM() == 120))
+              .count();
+          System.out.println("brakeDiskUncertainties: " + brakeDiskUncertainties);
+
+          long circleUncertainties = uncertainties.stream()
+              .filter(u -> u.getUncertaintyLocation().getReferencesComponents().stream()
+                  .anyMatch(c -> c instanceof Circle && ((Circle) c).getRadius() == 60))
+              .count();
+          System.out.println("circleUncertainties: " + circleUncertainties);
+
+          long brakeComponents = v.getRootObjects(Brakesystem.class).iterator().next()
+              .getBrakeComponents().size();
+          System.out.println("brakeComponents: " + brakeComponents);
+
+          long CADElements = v.getRootObjects(CADRepository.class).iterator().next()
+              .getCadElements().size();
+          System.out.println("CADElements: " + CADElements);
+
+          long uncertaintyFromDisk2 = uncertainties.stream()
+              .map(u -> u.getUncertaintyLocation().getSpecification())
+              .filter(u -> u.equals("FromDisk2")).count();
+
+          System.out.println("uncertaintyFromDisk2: " + uncertaintyFromDisk2);
+
+          return circleUncertainties == 1 && brakeDiskUncertainties == 1 &&
+              brakeComponents == 1 && CADElements == 1 && uncertaintyFromDisk2 == 2;
         }));
-
-    Assertions.assertTrue(assertView(getDefaultView(vsum,
-        List.of(Brakesystem.class)), (View v) -> {
-          var brakeComponents = v.getRootObjects(Brakesystem.class).iterator().next()
-              .getBrakeComponents();
-          System.out.println("Number of Uncertainties: " + brakeComponents.size());
-          return brakeComponents.size() == 1;
-        }));
-
-    Assertions.assertTrue(assertView(getDefaultView(vsum,
-        List.of(CADRepository.class)), (View v) -> {
-          var CADElements = v.getRootObjects(CADRepository.class).iterator().next()
-              .getCadElements();
-          System.out.println("Number of Uncertainties: " + CADElements.size());
-          return CADElements.size() == 1;
-        }));
-
-    // CommittableView uncertaintyView1 = getDefaultView(vsum,
-    // List.of(UncertaintyAnnotationRepository.class))
-    // .withChangeDerivingTrait();
-
-    // modifyView(uncertaintyView1, (CommittableView v) -> {
-    // // Remove the uncertainty
-
-    // System.out.println("Removing uncertainty");
-    // System.out
-    // .println("Uncertainties before: " +
-    // v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
-    // .getUncertainties().get(0).getUncertaintyLocation().getReferencesComponents().get(0));
-
-    // v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
-    // .getUncertainties().remove(0);
-    // });
-
-    // // Assert: The uncertainty is removed from the
-    // UncertaintyAnnotationRepository
-    // Assertions.assertTrue(assertView(getDefaultView(vsum,
-    // List.of(UncertaintyAnnotationRepository.class)), (View v) -> {
-    // var uncertainties =
-    // v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next().getUncertainties();
-    // System.out.println("Number of Uncertainties: " + uncertainties.size());
-
-    // // Make sure that the uncertainty is deleted
-    // return uncertainties.size() == 0;
-    // }));
 
   }
 

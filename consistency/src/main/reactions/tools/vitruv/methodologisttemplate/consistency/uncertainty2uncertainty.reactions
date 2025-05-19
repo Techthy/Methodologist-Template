@@ -65,7 +65,7 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
                 val newUncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
                 newUncertaintyLocation.getReferencesComponents.add(correspondingElement);
                 newUncertaintyLocation.setLocation(location.getLocation());
-                newUncertaintyLocation.setSpecification(location.getSpecification() + " (copy)");
+                newUncertaintyLocation.setSpecification(location.getSpecification());
 
                 // Create a new Uncertainty
                 val newUncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
