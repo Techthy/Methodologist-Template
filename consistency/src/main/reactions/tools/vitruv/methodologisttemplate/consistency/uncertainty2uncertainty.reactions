@@ -5,7 +5,7 @@ import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyLocation;
 import uncertainty.UncertaintyFactory;
-
+import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import "http://www.example.org/uncertainty" as uncertaintyModel
 
@@ -65,14 +65,14 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
                 val newUncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
                 newUncertaintyLocation.getReferencesComponents.add(correspondingElement);
                 newUncertaintyLocation.setLocation(location.getLocation());
-                newUncertaintyLocation.setSpecification(location.getSpecification());
-
+                newUncertaintyLocation.setSpecification(location.getSpecification() + EcoreUtil.generateUUID());
                 // Create a new Uncertainty
                 val newUncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
                 newUncertainty.setKind(sourceUncertainty.getKind());
                 newUncertainty.setReducability(sourceUncertainty.getReducability());
                 newUncertainty.setNature(sourceUncertainty.getNature());
                 newUncertainty.setUncertaintyLocation(newUncertaintyLocation);
+                newUncertainty.setId(EcoreUtil.generateUUID());
 
                 addCorrespondenceBetween(newUncertainty, sourceUncertainty);
                 annotationRepository.getUncertainties.add(newUncertainty);

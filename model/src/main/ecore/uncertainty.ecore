@@ -12,6 +12,8 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="uncertaintyLocation" eType="#//UncertaintyLocation"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="setManually" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="DefaultID"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="UncertaintyKind">
     <eLiterals name="BeliefUncertainty" value="1"/>
