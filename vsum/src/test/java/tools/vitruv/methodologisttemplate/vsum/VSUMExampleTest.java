@@ -10,6 +10,7 @@ import java.util.function.Function;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -513,8 +514,7 @@ public class VSUMExampleTest {
           var uncertaintyToDelete = uncertainties.stream()
               .filter(u -> u.getUncertaintyLocation().getSpecification().equals("FromDisk1"));
 
-          v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
-              .getUncertainties().remove(uncertaintyToDelete.findAny().get());
+          EcoreUtil.delete(uncertaintyToDelete.findAny().get(), true);
 
           // Trigger propagation
           v.getRootObjects(Brakesystem.class).iterator().next()
@@ -569,8 +569,7 @@ public class VSUMExampleTest {
           var uncertaintyToDelete = uncertainties.stream()
               .filter(u -> u.getUncertaintyLocation().getSpecification().equals("FromDisk2"));
 
-          v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
-              .getUncertainties().remove(uncertaintyToDelete.findAny().get());
+          EcoreUtil.delete(uncertaintyToDelete.findAny().get(), true);
 
           // Trigger propagation
           v.getRootObjects(Brakesystem.class).iterator().next()
