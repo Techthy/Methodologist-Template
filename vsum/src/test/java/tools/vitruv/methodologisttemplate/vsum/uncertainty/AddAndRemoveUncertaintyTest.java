@@ -7,7 +7,6 @@ import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
@@ -22,17 +21,10 @@ import brakesystem.Brakesystem;
 import brakesystem.BrakesystemFactory;
 import cad.CADRepository;
 import cad.Circle;
-import mir.reactions.brakesystem2cad.Brakesystem2cadChangePropagationSpecification;
-import mir.reactions.cad2brakesystem.Cad2brakesystemChangePropagationSpecification;
-import mir.reactions.uncertainty2uncertainty.Uncertainty2uncertaintyChangePropagationSpecification;
-import tools.vitruv.change.propagation.ChangePropagationMode;
-import tools.vitruv.change.testutils.TestUserInteraction;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.views.ViewTypeFactory;
 import tools.vitruv.framework.vsum.VirtualModel;
-import tools.vitruv.framework.vsum.VirtualModelBuilder;
-import tools.vitruv.framework.vsum.internal.InternalVirtualModel;
 import uncertainty.ReducabilityLevel;
 import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.UncertaintyFactory;
@@ -52,34 +44,23 @@ public class AddAndRemoveUncertaintyTest {
 
 	}
 
+	// Plan of the test:
+	// A BrakeDisk is manually added to the model
+	// The reaction creates a corresponding Circle
+	// The Uncertainty and UncertaintyLocation referencing the BrakeDisk are added
+	// manually
+	// A Uncertainty and UncertaintyLocation referencing the Circle are created by
+	// the reaction
+	// The Uncertainty which location is referencing the BrakeDisk is deleted
+	// The reaction deletes the Uncertainty which location is referencing the Circle
+
 	@Test
 	void addUncertaintyAndRemove(@TempDir Path tempDir) {
-		logger.info("test started");
-
-		VirtualModel vsum = createDefaultVirtualModel(tempDir);
-
-		Path tempDir1 = tempDir.resolve("subfolder");
-		tempDir1.toFile().mkdirs();
-
-		// Prepare models and insert their respective root objects
-		modifyView(getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
-					v.registerRoot(
-							UncertaintyFactory.eINSTANCE
-									.createUncertaintyAnnotationRepository(),
-							URI.createFileURI(tempDir1.toString() + "/uncertainty.model"));
-
-				});
-		// Reaction will create a CADRepository
-		modifyView(getDefaultView(vsum, List.of(Brakesystem.class)).withChangeDerivingTrait(),
-				(CommittableView v) -> {
-					v.registerRoot(
-							BrakesystemFactory.eINSTANCE.createBrakesystem(),
-							URI.createFileURI(tempDir1.toString() + "/brakesystem.model"));
-				});
+		VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
+		UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
 
 		// Add a BrakeDisk that in turn (by reactions) creates a Circle
-		addBrakeDiscWithDiameter(vsum, tempDir1, 120);
+		addBrakeDiscWithDiameter(vsum, tempDir, 120);
 
 		// Assert: No uncertainties exist
 		// This is a workaround since otherwise we encouter dangling references
@@ -292,22 +273,6 @@ public class AddAndRemoveUncertaintyTest {
 			brakeDisc.setDiameterInMM(diameter);
 			v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents().add(brakeDisc);
 		});
-	}
-
-	private InternalVirtualModel createDefaultVirtualModel(Path projectPath) {
-		projectPath = projectPath.resolve("subfolder");
-		projectPath.toFile().mkdirs();
-		InternalVirtualModel model = new VirtualModelBuilder()
-				.withStorageFolder(projectPath)
-				.withUserInteractorForResultProvider(
-						new TestUserInteraction.ResultProvider(new TestUserInteraction()))
-				.withChangePropagationSpecification(new Brakesystem2cadChangePropagationSpecification())
-				.withChangePropagationSpecification(
-						new Uncertainty2uncertaintyChangePropagationSpecification())
-				.withChangePropagationSpecification(new Cad2brakesystemChangePropagationSpecification())
-				.buildAndInitialize();
-		model.setChangePropagationMode(ChangePropagationMode.TRANSITIVE_CYCLIC);
-		return model;
 	}
 
 	// See https://github.com/vitruv-tools/Vitruv/issues/717 for more information
