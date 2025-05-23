@@ -40,6 +40,18 @@ public class AddAndRemoveUncertaintyWithManuallyTest {
 
 	}
 
+	// Plan of the test:
+	// A BrakeDisk is manually added to the model
+	// The reaction creates a corresponding Circle
+	// The Uncertainty and UncertaintyLocation referencing the BrakeDisk are added
+	// manually
+	// The Uncertainty referencing the Circle is created by the reaction
+	// (setManually is therefore false)
+	// This Uncertainty is then edited and the setManually flag is set to true
+	// The Uncertainty referencing the BrakeDisk is deleted
+	// The Uncertainty referencing the Circle is NOT deleted (since it was modified
+	// manually)
+
 	@Test
 	void addAndRemoveUncertaintyWithManualEdit(@TempDir Path tempDir) {
 
