@@ -14,6 +14,7 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="setManually" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
         defaultValueLiteral="DefaultID"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="effect" eType="#//Effect"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="UncertaintyKind">
     <eLiterals name="BeliefUncertainty" value="1"/>
@@ -48,5 +49,16 @@
         eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="location" eType="#//UncertaintyLocationType"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="specification" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Effect">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="specification" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="effectTypes" upperBound="-1"
+        eType="#//EffectTypes"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="EffectTypes">
+    <eLiterals name="Stochastic"/>
+    <eLiterals name="Continous" value="2"/>
+    <eLiterals name="Discrete" value="3"/>
+    <eLiterals name="Scenario" value="1"/>
   </eClassifiers>
 </ecore:EPackage>

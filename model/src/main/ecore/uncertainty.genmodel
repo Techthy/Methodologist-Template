@@ -37,6 +37,12 @@
       <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//UncertaintyLocationType/ModelStructureUncertainty"/>
       <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//UncertaintyLocationType/ModelOutcomeUncertainty"/>
     </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="uncertainty.ecore#//EffectTypes">
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectTypes/Stochastic"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectTypes/Continous"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectTypes/Discrete"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectTypes/Scenario"/>
+    </genEnums>
     <genClasses ecoreClass="uncertainty.ecore#//UncertaintyAnnotationRepository">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference uncertainty.ecore#//UncertaintyAnnotationRepository/uncertainties"/>
     </genClasses>
@@ -47,11 +53,16 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference uncertainty.ecore#//Uncertainty/uncertaintyLocation"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//Uncertainty/setManually"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//Uncertainty/id"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference uncertainty.ecore#//Uncertainty/effect"/>
     </genClasses>
     <genClasses ecoreClass="uncertainty.ecore#//UncertaintyLocation">
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference uncertainty.ecore#//UncertaintyLocation/referencesComponents"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//UncertaintyLocation/location"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//UncertaintyLocation/specification"/>
+    </genClasses>
+    <genClasses ecoreClass="uncertainty.ecore#//Effect">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//Effect/specification"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EAttribute uncertainty.ecore#//Effect/effectTypes"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>
