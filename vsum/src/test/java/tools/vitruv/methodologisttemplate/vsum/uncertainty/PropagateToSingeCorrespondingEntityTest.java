@@ -42,6 +42,11 @@ public class PropagateToSingeCorrespondingEntityTest {
 
 	}
 
+	// Plan of the test:
+	// Add BrakeDisk and Circle (by reaction)
+	// Add Uncertainty to BrakeDisk\
+	// Asserts it propagates correctly to the Circle
+
 	@Test
 	void createUncertaintyManuallyPropagateToSingleCorrespondingEntity(@TempDir Path tempDir) {
 
