@@ -47,6 +47,7 @@ public class UncertaintyTestUtil {
 		return model;
 	}
 
+	// Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository
 	public static void registerRootObjects(VirtualModel virtualModel, Path filePath) {
 		CommittableView view = getDefaultView(virtualModel,
 				List.of(Brakesystem.class, CADRepository.class, UncertaintyAnnotationRepository.class))
