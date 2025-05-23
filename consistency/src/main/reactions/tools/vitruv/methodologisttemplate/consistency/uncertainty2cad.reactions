@@ -9,6 +9,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import brakesystem.BrakeDisk;
 import uncertainty.UncertaintyKind;
 import uncertainty.EffectType;
+import cad.Circle;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -50,13 +51,13 @@ routine handleBrakeDiskUncertainty(uncertaintyModel::UncertaintyLocation locatio
         val effect = sourceUncertainty.effect;
 
 		
-        if (sourceUncertainty.kind != UncertaintyKind.BELIEF_UNCERTAINTY) return;
-        if (effect == null) return;
+        if (sourceUncertainty.kind !== UncertaintyKind.BELIEF_UNCERTAINTY) return;
+        if (effect === null) return;
         val regex = "^N=\\((-?\\d+(\\.\\d+)?),\\s*(-?\\d+(\\.\\d+)?)\\)$";
         val pattern = Pattern.compile(regex);
         val matcher = pattern.matcher(sourceUncertainty.effect.specification);
         if (!matcher.matches()) return;
-        val mu = Double.parseDouble(matcher.group(1));
+        val mu = Integer.parseInt(matcher.group(1));
         val effectTypes = effect.effectTypes;
         // TODO: fix spelling
         if (!effectTypes.contains(EffectType.CONTINOUS)) return;
@@ -67,12 +68,12 @@ routine handleBrakeDiskUncertainty(uncertaintyModel::UncertaintyLocation locatio
 
 
         for (correspondingElement : correspondingReferenceList) {
+            if (correspondingElement instanceof Circle) {
+                // still need to divide by 2 since the diameter is given
+                correspondingElement.setRadius(mu / 2);
+            }
            
         }
-
-
-
-
     }
 
 
