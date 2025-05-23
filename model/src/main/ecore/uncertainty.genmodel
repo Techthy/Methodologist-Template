@@ -39,7 +39,7 @@
     </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="uncertainty.ecore#//EffectType">
       <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectType/Stochastic"/>
-      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectType/Continous"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectType/Continuous"/>
       <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectType/Discrete"/>
       <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectType/Scenario"/>
     </genEnums>
