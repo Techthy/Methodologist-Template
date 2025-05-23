@@ -26,47 +26,60 @@ import uncertainty.UncertaintyFactory;
 
 public class UncertaintyTestUtil {
 
-    public static InternalVirtualModel createDefaultVirtualModel(Path projectPath) {
-        InternalVirtualModel model = new VirtualModelBuilder()
-                .withStorageFolder(projectPath)
-                .withUserInteractorForResultProvider(
-                        new TestUserInteraction.ResultProvider(new TestUserInteraction()))
-                .withChangePropagationSpecification(new Brakesystem2cadChangePropagationSpecification())
-                .withChangePropagationSpecification(
-                        new Uncertainty2uncertaintyChangePropagationSpecification())
-                .withChangePropagationSpecification(new Cad2brakesystemChangePropagationSpecification())
-                .buildAndInitialize();
-        model.setChangePropagationMode(ChangePropagationMode.TRANSITIVE_CYCLIC);
-        return model;
-    }
+	public static InternalVirtualModel createDefaultVirtualModel(Path projectPath) {
+		InternalVirtualModel model = new VirtualModelBuilder()
+				.withStorageFolder(projectPath)
+				.withUserInteractorForResultProvider(
+						new TestUserInteraction.ResultProvider(new TestUserInteraction()))
+				.withChangePropagationSpecification(new Brakesystem2cadChangePropagationSpecification())
+				.withChangePropagationSpecification(
+						new Uncertainty2uncertaintyChangePropagationSpecification())
+				.withChangePropagationSpecification(new Cad2brakesystemChangePropagationSpecification())
+				.buildAndInitialize();
+		model.setChangePropagationMode(ChangePropagationMode.TRANSITIVE_CYCLIC);
+		return model;
+	}
 
-    public static void registerRootObjects(VirtualModel virtualModel, Path filePath) {
-        CommittableView view = getDefaultView(virtualModel,
-                List.of(Brakesystem.class, CADRepository.class, UncertaintyAnnotationRepository.class))
-                .withChangeDerivingTrait();
-        modifyView(view, (CommittableView v) -> {
-            v.registerRoot(
-                    UncertaintyFactory.eINSTANCE
-                            .createUncertaintyAnnotationRepository(),
-                    org.eclipse.emf.common.util.URI.createFileURI(filePath.toString() + "/uncertainty.model"));
+	public static void registerRootObjects(VirtualModel virtualModel, Path filePath) {
+		CommittableView view = getDefaultView(virtualModel,
+				List.of(Brakesystem.class, CADRepository.class, UncertaintyAnnotationRepository.class))
+				.withChangeDerivingTrait();
+		modifyView(view, (CommittableView v) -> {
+			v.registerRoot(
+					UncertaintyFactory.eINSTANCE
+							.createUncertaintyAnnotationRepository(),
+					org.eclipse.emf.common.util.URI
+							.createFileURI(filePath.toString() + "/uncertainty.model"));
 
-            v.registerRoot(
-                    BrakesystemFactory.eINSTANCE.createBrakesystem(),
-                    URI.createFileURI(filePath.toString() + "/brakesystem.model"));
-        });
+			v.registerRoot(
+					BrakesystemFactory.eINSTANCE.createBrakesystem(),
+					URI.createFileURI(filePath.toString() + "/brakesystem.model"));
+		});
 
-    }
+	}
 
-    private static void modifyView(CommittableView view, Consumer<CommittableView> modificationFunction) {
-        modificationFunction.accept(view);
-        view.commitChanges();
-    }
+	private static void modifyView(CommittableView view, Consumer<CommittableView> modificationFunction) {
+		modificationFunction.accept(view);
+		view.commitChanges();
+	}
 
-    private static View getDefaultView(VirtualModel vsum, Collection<Class<?>> rootTypes) {
-        var selector = vsum.createSelector(ViewTypeFactory.createIdentityMappingViewType("default"));
-        selector.getSelectableElements().stream()
-                .filter(element -> rootTypes.stream().anyMatch(it -> it.isInstance(element)))
-                .forEach(it -> selector.setSelected(it, true));
-        return selector.createView();
-    }
+	// See https://github.com/vitruv-tools/Vitruv/issues/717 for more information
+	// about the rootTypes
+	public static View getDefaultView(VirtualModel vsum, Collection<Class<?>> rootTypes) {
+		var selector = vsum.createSelector(ViewTypeFactory.createIdentityMappingViewType("default"));
+		selector.getSelectableElements().stream()
+				.filter(element -> rootTypes.stream().anyMatch(it -> it.isInstance(element)))
+				.forEach(it -> selector.setSelected(it, true));
+		return selector.createView();
+	}
+
+	public static void addBrakeDiscWithDiameter(VirtualModel vsum, Path projectPath, int diameter) {
+		CommittableView view = getDefaultView(vsum, List.of(Brakesystem.class))
+				.withChangeDerivingTrait();
+		modifyView(view, (CommittableView v) -> {
+			var brakeDisc = BrakesystemFactory.eINSTANCE.createBrakeDisk();
+			brakeDisc.setDiameterInMM(diameter);
+			v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents().add(brakeDisc);
+		});
+	}
 }
