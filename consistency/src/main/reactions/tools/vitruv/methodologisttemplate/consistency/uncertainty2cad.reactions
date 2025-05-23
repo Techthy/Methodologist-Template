@@ -1,0 +1,79 @@
+
+import java.io.File;
+import java.util.List;
+import uncertainty.UncertaintyAnnotationRepository;
+import uncertainty.Uncertainty;
+import uncertainty.UncertaintyLocation;
+import uncertainty.UncertaintyFactory;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import brakesystem.BrakeDisk;
+import uncertainty.UncertaintyKind;
+import uncertainty.EffectType;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+
+import "http://www.example.org/uncertainty" as uncertaintyModel
+import "http://www.example.org/cad" as cadModel
+import "http://www.example.org/brakesystem" as brakesystemModel
+
+
+
+reactions: uncertainty2cad
+in reaction to changes in uncertaintyModel
+execute actions in cadModel
+
+reaction UncertaintyLocationReferencingBrakeDiskInsertedIntoUncertainty {
+    after element EObject inserted in uncertaintyModel::UncertaintyLocation[referencesComponents]
+    call handleBrakeDiskUncertainty(affectedEObject, newValue)
+}
+
+
+routine handleBrakeDiskUncertainty(uncertaintyModel::UncertaintyLocation location, EObject referencedElement) {
+    
+    match {
+        val correspondingReferenceList = retrieve many EObject corresponding to referencedElement
+        check referencedElement instanceof BrakeDisk    
+    }
+
+
+    update {
+        System.out.println("Handling BrakeDisk Uncertainty");
+        System.out.println("BrakeDisk: " + referencedElement);
+
+        // Check if uncertainty qualifies
+        // needs to be a of kind belief
+        // the Effect shall have specifcation that looks like "N=(x,y)"
+        // the EffectTypes within the Effect shall include continuous and probabilistic
+
+        val sourceUncertainty = location.eContainer() as Uncertainty;
+        val effect = sourceUncertainty.effect;
+
+		
+        if (sourceUncertainty.kind != UncertaintyKind.BELIEF_UNCERTAINTY) return;
+        if (effect == null) return;
+        val regex = "^N=\\((-?\\d+(\\.\\d+)?),\\s*(-?\\d+(\\.\\d+)?)\\)$";
+        val pattern = Pattern.compile(regex);
+        val matcher = pattern.matcher(sourceUncertainty.effect.specification);
+        if (!matcher.matches()) return;
+        val mu = Double.parseDouble(matcher.group(1));
+        val effectTypes = effect.effectTypes;
+        // TODO: fix spelling
+        if (!effectTypes.contains(EffectType.CONTINOUS)) return;
+        if (!effectTypes.contains(EffectType.STOCHASTIC)) return;
+
+
+        System.out.println("Uncertainty qualifies for BrakeDisk");
+
+
+        for (correspondingElement : correspondingReferenceList) {
+           
+        }
+
+
+
+
+    }
+
+
+}
