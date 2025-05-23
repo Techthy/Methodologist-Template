@@ -37,11 +37,11 @@
       <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//UncertaintyLocationType/ModelStructureUncertainty"/>
       <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//UncertaintyLocationType/ModelOutcomeUncertainty"/>
     </genEnums>
-    <genEnums typeSafeEnumCompatible="false" ecoreEnum="uncertainty.ecore#//EffectTypes">
-      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectTypes/Stochastic"/>
-      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectTypes/Continous"/>
-      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectTypes/Discrete"/>
-      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectTypes/Scenario"/>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="uncertainty.ecore#//EffectType">
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectType/Stochastic"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectType/Continous"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectType/Discrete"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectType/Scenario"/>
     </genEnums>
     <genClasses ecoreClass="uncertainty.ecore#//UncertaintyAnnotationRepository">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference uncertainty.ecore#//UncertaintyAnnotationRepository/uncertainties"/>

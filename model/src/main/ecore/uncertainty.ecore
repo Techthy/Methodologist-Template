@@ -53,9 +53,9 @@
   <eClassifiers xsi:type="ecore:EClass" name="Effect">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="specification" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="effectTypes" upperBound="-1"
-        eType="#//EffectTypes"/>
+        eType="#//EffectType"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EEnum" name="EffectTypes">
+  <eClassifiers xsi:type="ecore:EEnum" name="EffectType">
     <eLiterals name="Stochastic"/>
     <eLiterals name="Continous" value="2"/>
     <eLiterals name="Discrete" value="3"/>
