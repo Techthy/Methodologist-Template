@@ -7,9 +7,11 @@ import java.util.function.Consumer;
 
 import org.eclipse.emf.common.util.URI;
 
+import brakesystem.BrakeDisk;
 import brakesystem.Brakesystem;
 import brakesystem.BrakesystemFactory;
 import cad.CADRepository;
+import cad.Circle;
 import mir.reactions.brakesystem2cad.Brakesystem2cadChangePropagationSpecification;
 import mir.reactions.cad2brakesystem.Cad2brakesystemChangePropagationSpecification;
 import mir.reactions.uncertainty2uncertainty.Uncertainty2uncertaintyChangePropagationSpecification;
@@ -21,10 +23,15 @@ import tools.vitruv.framework.views.ViewTypeFactory;
 import tools.vitruv.framework.vsum.VirtualModel;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 import tools.vitruv.framework.vsum.internal.InternalVirtualModel;
+import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.UncertaintyFactory;
 
 public class UncertaintyTestUtil {
+
+	private UncertaintyTestUtil() {
+		// Utility class
+	}
 
 	public static InternalVirtualModel createDefaultVirtualModel(Path projectPath) {
 		InternalVirtualModel model = new VirtualModelBuilder()
@@ -81,5 +88,25 @@ public class UncertaintyTestUtil {
 			brakeDisc.setDiameterInMM(diameter);
 			v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents().add(brakeDisc);
 		});
+	}
+
+	public static List<Uncertainty> getBrakeDiskUncertainties(View view) {
+		return view.getRootObjects(UncertaintyAnnotationRepository.class)
+				.iterator().next()
+				.getUncertainties().stream()
+				.filter(u -> u.getUncertaintyLocation()
+						.getReferencesComponents().stream()
+						.anyMatch(c -> c instanceof BrakeDisk))
+				.toList();
+	}
+
+	public static List<Uncertainty> getCircleUncertainties(View view) {
+		return view.getRootObjects(UncertaintyAnnotationRepository.class)
+				.iterator().next()
+				.getUncertainties().stream()
+				.filter(u -> u.getUncertaintyLocation()
+						.getReferencesComponents().stream()
+						.anyMatch(c -> c instanceof Circle))
+				.toList();
 	}
 }

@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import brakesystem.BrakeDisk;
 import brakesystem.Brakesystem;
 import cad.CADRepository;
-import cad.Circle;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.vsum.VirtualModel;
@@ -54,6 +53,7 @@ public class AddAndRemoveUncertaintyTest {
 
 	@Test
 	void addUncertaintyAndRemove(@TempDir Path tempDir) {
+		logger.debug("=== Starting test ===");
 		VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
 		// Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository
 		UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
@@ -72,8 +72,8 @@ public class AddAndRemoveUncertaintyTest {
 					.filter(d -> d.getDiameterInMM() == 120)
 					.findFirst().orElseThrow();
 
-			var firstUncertainty = createUncertaitny("FromDisk1", brakeDisk);
-			var secondUncertainty = createUncertaitny("FromDisk2", brakeDisk);
+			var firstUncertainty = createUncertainty("FromDisk1", brakeDisk, UncertaintyKind.MEASUREMENT_UNCERTAINTY);
+			var secondUncertainty = createUncertainty("FromDisk2", brakeDisk, UncertaintyKind.OCCURENCE_UNCERTAINTY);
 
 			// Trigger propagation
 			brakeDisk.setSpecificationType("propagationTest");
@@ -90,34 +90,12 @@ public class AddAndRemoveUncertaintyTest {
 		Assertions.assertTrue(
 				assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
 						(View v) -> {
-							var uncertainties = v.getRootObjects(
-									UncertaintyAnnotationRepository.class)
-									.iterator().next()
-									.getUncertainties();
-							logger.debug("Number of Uncertainties: "
-									+ uncertainties.size());
+							var brakeDiskUncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
+							var circleUncertainties = UncertaintyTestUtil.getCircleUncertainties(v);
+							logger.debug("brakeDiskUncertainties: " + brakeDiskUncertainties);
+							logger.debug("circleUncertainties: " + circleUncertainties);
 
-							long brakeDiskUncertainties = uncertainties.stream()
-									.filter(u -> u.getUncertaintyLocation()
-											.getReferencesComponents()
-											.stream()
-											.anyMatch(c -> c instanceof BrakeDisk
-													&& ((BrakeDisk) c)
-															.getDiameterInMM() == 120))
-									.count();
-							logger.debug("brakeDiskUncertainties: "
-									+ brakeDiskUncertainties);
-
-							long circleUncertainties = uncertainties.stream()
-									.filter(u -> u.getUncertaintyLocation()
-											.getReferencesComponents()
-											.stream()
-											.anyMatch(c -> c instanceof Circle
-													&& ((Circle) c).getRadius() == 60))
-									.count();
-							logger.debug(
-									"circleUncertainties: " + circleUncertainties);
-							return brakeDiskUncertainties == 2 && circleUncertainties == 2;
+							return brakeDiskUncertainties.size() == 2 && circleUncertainties.size() == 2;
 						}));
 
 		// Delete any of the two uncertainties belonging to the brake disk
@@ -132,37 +110,16 @@ public class AddAndRemoveUncertaintyTest {
 		Assertions.assertTrue(assertView(UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class, CADRepository.class)),
 				(View v) -> {
-					var uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
-							.iterator().next()
-							.getUncertainties();
+					var brakeDiskUncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
+					var circleUncertainties = UncertaintyTestUtil.getCircleUncertainties(v);
 
-					long brakeDiskUncertainties = uncertainties.stream()
-							.filter(u -> u.getUncertaintyLocation()
-									.getReferencesComponents().stream()
-									.anyMatch(c -> c instanceof BrakeDisk
-											&& ((BrakeDisk) c)
-													.getDiameterInMM() == 120))
-							.count();
-					logger.debug("brakeDiskUncertainties: " + brakeDiskUncertainties);
-
-					long circleUncertainties = uncertainties.stream()
-							.filter(u -> u.getUncertaintyLocation()
-									.getReferencesComponents().stream()
-									.anyMatch(c -> c instanceof Circle
-											&& ((Circle) c).getRadius() == 60))
-							.count();
-					logger.debug("circleUncertainties: " + circleUncertainties);
-
-					long brakeComponents = v.getRootObjects(Brakesystem.class).iterator().next()
+					long brakeComponentCount = v.getRootObjects(Brakesystem.class).iterator().next()
 							.getBrakeComponents().size();
-					logger.debug("brakeComponents: " + brakeComponents);
-
-					long CADElements = v.getRootObjects(CADRepository.class).iterator().next()
+					long CADElementCount = v.getRootObjects(CADRepository.class).iterator().next()
 							.getCadElements().size();
-					logger.debug("CADElements: " + CADElements);
 
-					return circleUncertainties == 1 && CADElements == 1
-							&& brakeDiskUncertainties == 1 && brakeComponents == 1;
+					return circleUncertainties.size() == 1 && CADElementCount == 1
+							&& brakeDiskUncertainties.size() == 1 && brakeComponentCount == 1;
 				}));
 
 		// Delete the remaining uncertainty belonging to the brake disk
@@ -193,7 +150,8 @@ public class AddAndRemoveUncertaintyTest {
 
 	}
 
-	private Uncertainty createUncertaitny(String uncertaintyLocationSpecification, EObject object) {
+	private Uncertainty createUncertainty(String uncertaintyLocationSpecification, EObject object,
+			UncertaintyKind kind) {
 		var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
 		uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
 		uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
@@ -201,7 +159,7 @@ public class AddAndRemoveUncertaintyTest {
 
 		var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
 		uncertainty.setUncertaintyLocation(uncertaintyLocation);
-		uncertainty.setKind(UncertaintyKind.MEASUREMENT_UNCERTAINTY);
+		uncertainty.setKind(kind);
 		uncertainty.setReducability(ReducabilityLevel.UNKNOWN);
 		uncertainty.setNature(UncertaintyNature.ALEATORY);
 		uncertainty.setSetManually(true);
