@@ -73,7 +73,7 @@ public class AddAndRemoveUncertaintyWithManuallyTest {
 					.filter(d -> d.getDiameterInMM() == 120)
 					.findFirst().orElseThrow();
 
-			var uncertainty = createUncertaitny("FromDisk", brakeDisk);
+			var uncertainty = createUncertainty("FromDisk", brakeDisk);
 
 			v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
 					.getUncertainties().add(uncertainty);
@@ -148,7 +148,7 @@ public class AddAndRemoveUncertaintyWithManuallyTest {
 
 	}
 
-	private Uncertainty createUncertaitny(String uncertaintyLocationSpecification, EObject object) {
+	private Uncertainty createUncertainty(String uncertaintyLocationSpecification, EObject object) {
 		var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
 		uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
 		uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
