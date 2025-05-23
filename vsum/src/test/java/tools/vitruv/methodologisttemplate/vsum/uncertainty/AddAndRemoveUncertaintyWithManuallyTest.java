@@ -143,7 +143,7 @@ public class AddAndRemoveUncertaintyWithManuallyTest {
 							var brakeDiskUncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
 							var circleUncertainties = UncertaintyTestUtil.getCircleUncertainties(v);
 
-							return brakeDiskUncertainties.size() == 0 && circleUncertainties.size() == 1;
+							return brakeDiskUncertainties.isEmpty() && circleUncertainties.size() == 1;
 						}));
 
 	}

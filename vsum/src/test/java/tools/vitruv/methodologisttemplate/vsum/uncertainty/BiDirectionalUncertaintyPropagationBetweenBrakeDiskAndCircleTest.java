@@ -42,6 +42,12 @@ public class BiDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleTest {
 
 	}
 
+	// Plan of the test:
+	// Add brake disk and circle
+	// Add uncertainty to the circle this should propagate to the brake disk
+	// Add uncertainty to the brake disk this should propagate to the circle
+	// Assert that both uncertainties are propagated and created a corresponding
+	// uncertainty
 	@Test
 	void biDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleSameUncertaintyNotAutomaticallyCreated(
 			@TempDir Path tempDir) {
