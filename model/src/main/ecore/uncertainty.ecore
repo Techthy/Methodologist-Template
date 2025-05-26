@@ -16,7 +16,8 @@
         defaultValueLiteral="DefaultID"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="effect" eType="#//Effect"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="onDelete" eType="#//OnDeleteMode"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="onDelete" eType="#//OnDeleteMode"
+        defaultValueLiteral="CASCADE"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="pattern" eType="#//Pattern"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="perspective" eType="#//UncertaintyPerspective"
