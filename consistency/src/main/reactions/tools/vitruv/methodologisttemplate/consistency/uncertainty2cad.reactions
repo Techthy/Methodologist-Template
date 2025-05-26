@@ -39,9 +39,6 @@ routine handleBrakeDiskUncertainty(uncertaintyModel::UncertaintyLocation locatio
 
 
     update {
-        System.out.println("Handling BrakeDisk Uncertainty");
-        System.out.println("BrakeDisk: " + referencedElement);
-
         // Check if uncertainty qualifies
         // needs to be a of kind belief
         // the Effect shall have specification that looks like "N=(x,y)"

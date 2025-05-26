@@ -4,6 +4,8 @@ import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyLocation;
 import uncertainty.UncertaintyFactory;
+import uncertainty.OnDeleteMode;
+
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import "http://www.example.org/uncertainty" as uncertaintyModel
@@ -47,9 +49,11 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
         //      newUncertainty = createNewUncertainty(corrElement, sourceUncertainty)
         //      listOfNewCorrespondingUncertainties.add(newUncertainty)
 
+        // ==========
+        //  Xtend Code Implementation
+        // =========
 
-        // Xtend Code:
-        val sourceUncertainty = location.eContainer() as Uncertainty;
+
         for (correspondingElement : correspondingReferenceList) {
             val annotationRepository = sourceUncertainty.eContainer() as UncertaintyAnnotationRepository; 
             val uncertaintyList = annotationRepository.uncertainties as List<Uncertainty>;
@@ -115,6 +119,33 @@ routine deleteCorrespondingUncertainties(uncertaintyModel::Uncertainty sourceUnc
         val uncertaintiesList = retrieve many uncertaintyModel::Uncertainty corresponding to sourceUncertainty
     }
     update {
+
+        System.out.println("LEEL: " + sourceUncertainty.getOnDelete());
+
+
+        // If there are no corresponding uncertainties: deletion of sourceUncertainty is allowed and no further action is needed
+        if (uncertaintiesList.isEmpty()) {
+                return;
+        } 
+
+
+        // DELETE MODE: No Action
+        if (sourceUncertainty.getOnDelete() === OnDeleteMode.NO_ACTION) {
+            // No further uncertainties are deleted
+            return;
+        }
+
+        if (sourceUncertainty.getOnDelete() === OnDeleteMode.RESTRICT) {
+            // readd the sourceUncertainty (as it is protected and there are corresponding references see above) 
+            val annotationRepository = sourceUncertainty.eContainer() as UncertaintyAnnotationRepository;
+            annotationRepository.getUncertainties.add(sourceUncertainty);
+            System.out.println("[] Uncertainty deletion is restricted, re-adding the source uncertainty: " + sourceUncertainty.getId());
+            return;
+        }
+
+        // DELETE MODE: Cascade (default)
+
+
         for (correspondingUncertainty : uncertaintiesList) {
             if (!correspondingUncertainty.isSetManually()) {
                 removeObject(correspondingUncertainty);
