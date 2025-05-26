@@ -25,8 +25,9 @@ import tools.vitruv.framework.vsum.VirtualModel;
 import tools.vitruv.methodologisttemplate.vsum.uncertainty.AddAndRemoveUncertaintyTest;
 import tools.vitruv.methodologisttemplate.vsum.uncertainty.UncertaintyTestUtil;
 import uncertainty.Effect;
-import uncertainty.EffectType;
 import uncertainty.ReducabilityLevel;
+import uncertainty.StochasticityEffectType;
+import uncertainty.StructuralEffectTypeRepresentation;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.UncertaintyFactory;
@@ -117,7 +118,8 @@ public class BrakeDiskDiameterUncertaintyTest {
 
                 Effect effect = UncertaintyFactory.eINSTANCE.createEffect();
                 effect.setSpecification("N=(196,5)");
-                effect.getEffectTypes().addAll(List.of(EffectType.STOCHASTIC, EffectType.CONTINUOUS));
+                effect.setStochasticity(StochasticityEffectType.PROBABILISTIC);
+                effect.setRepresentation(StructuralEffectTypeRepresentation.CONTINOUS);
 
                 var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
                 uncertainty.setUncertaintyLocation(uncertaintyLocation);
