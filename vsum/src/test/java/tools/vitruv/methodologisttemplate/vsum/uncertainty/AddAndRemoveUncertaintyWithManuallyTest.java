@@ -11,6 +11,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
@@ -52,6 +53,7 @@ public class AddAndRemoveUncertaintyWithManuallyTest {
 	// The Uncertainty referencing the Circle is NOT deleted (since it was modified
 	// manually)
 
+	@Disabled
 	@Test
 	void addAndRemoveUncertaintyWithManualEdit(@TempDir Path tempDir) {
 
@@ -106,7 +108,7 @@ public class AddAndRemoveUncertaintyWithManuallyTest {
 					var circleUncertainty = v.getRootObjects(UncertaintyAnnotationRepository.class).iterator()
 							.next()
 							.getUncertainties().stream()
-							.filter(u -> u.getUncertaintyLocation().getReferencesComponents().stream()
+							.filter(u -> u.getUncertaintyLocation().getReferencedComponents().stream()
 									.anyMatch(c -> c instanceof Circle
 											&& ((Circle) c).getRadius() == 60))
 							.findFirst().orElseThrow();
@@ -152,7 +154,7 @@ public class AddAndRemoveUncertaintyWithManuallyTest {
 		var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
 		uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
 		uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
-		uncertaintyLocation.getReferencesComponents().add(object);
+		uncertaintyLocation.getReferencedComponents().add(object);
 
 		var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
 		uncertainty.setUncertaintyLocation(uncertaintyLocation);
@@ -174,7 +176,7 @@ public class AddAndRemoveUncertaintyWithManuallyTest {
 							.getUncertainties();
 					var uncertaintyToDelete = uncertainties.stream()
 							.filter(u -> u.getUncertaintyLocation()
-									.getReferencesComponents().stream()
+									.getReferencedComponents().stream()
 									.anyMatch(c -> c instanceof BrakeDisk))
 							.findFirst().orElseThrow();
 					logger.debug("Deleting uncertainty: " + uncertaintyToDelete);

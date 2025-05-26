@@ -37,11 +37,29 @@
       <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//UncertaintyLocationType/ModelStructureUncertainty"/>
       <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//UncertaintyLocationType/ModelOutcomeUncertainty"/>
     </genEnums>
-    <genEnums typeSafeEnumCompatible="false" ecoreEnum="uncertainty.ecore#//EffectType">
-      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectType/Stochastic"/>
-      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectType/Continuous"/>
-      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectType/Discrete"/>
-      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//EffectType/Scenario"/>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="uncertainty.ecore#//OnDeleteMode">
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//OnDeleteMode/NO_ACTION"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//OnDeleteMode/CASCADE"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//OnDeleteMode/RESTRICT"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="uncertainty.ecore#//StructuralEffectTypeRepresentation">
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//StructuralEffectTypeRepresentation/Continous"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//StructuralEffectTypeRepresentation/Discrete"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="uncertainty.ecore#//StochasticityEffectType">
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//StochasticityEffectType/Probabilistic"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//StochasticityEffectType/NonDeterministic"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="uncertainty.ecore#//PatternType">
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//PatternType/Periodic"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//PatternType/Persistent"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//PatternType/Sporadic"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//PatternType/Transient"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//PatternType/Random"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="uncertainty.ecore#//UncertaintyPerspectiveType">
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//UncertaintyPerspectiveType/Subjective"/>
+      <genEnumLiterals ecoreEnumLiteral="uncertainty.ecore#//UncertaintyPerspectiveType/Objective"/>
     </genEnums>
     <genClasses ecoreClass="uncertainty.ecore#//UncertaintyAnnotationRepository">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference uncertainty.ecore#//UncertaintyAnnotationRepository/uncertainties"/>
@@ -54,15 +72,26 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//Uncertainty/setManually"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//Uncertainty/id"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference uncertainty.ecore#//Uncertainty/effect"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//Uncertainty/onDelete"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference uncertainty.ecore#//Uncertainty/pattern"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference uncertainty.ecore#//Uncertainty/perspective"/>
     </genClasses>
     <genClasses ecoreClass="uncertainty.ecore#//UncertaintyLocation">
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference uncertainty.ecore#//UncertaintyLocation/referencesComponents"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference uncertainty.ecore#//UncertaintyLocation/referencedComponents"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//UncertaintyLocation/location"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//UncertaintyLocation/specification"/>
     </genClasses>
     <genClasses ecoreClass="uncertainty.ecore#//Effect">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//Effect/specification"/>
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EAttribute uncertainty.ecore#//Effect/effectTypes"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//Effect/representation"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//Effect/stochasticity"/>
+    </genClasses>
+    <genClasses ecoreClass="uncertainty.ecore#//Pattern">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//Pattern/patternType"/>
+    </genClasses>
+    <genClasses ecoreClass="uncertainty.ecore#//UncertaintyPerspective">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//UncertaintyPerspective/perspective"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute uncertainty.ecore#//UncertaintyPerspective/specification"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>

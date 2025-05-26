@@ -113,7 +113,7 @@ public class BrakeDiskDiameterUncertaintyTest {
                 var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
                 uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
                 uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
-                uncertaintyLocation.getReferencesComponents().add(object);
+                uncertaintyLocation.getReferencedComponents().add(object);
 
                 Effect effect = UncertaintyFactory.eINSTANCE.createEffect();
                 effect.setSpecification("N=(196,5)");

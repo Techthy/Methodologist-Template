@@ -119,7 +119,7 @@ public class BiDirectionalSameUncertaintyNotCreated {
 		var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
 		uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
 		uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
-		uncertaintyLocation.getReferencesComponents().add(object);
+		uncertaintyLocation.getReferencedComponents().add(object);
 
 		var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
 		uncertainty.setUncertaintyLocation(uncertaintyLocation);

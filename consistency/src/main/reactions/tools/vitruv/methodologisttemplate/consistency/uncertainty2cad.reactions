@@ -25,7 +25,7 @@ in reaction to changes in uncertaintyModel
 execute actions in cadModel
 
 reaction UncertaintyLocationReferencingBrakeDiskInsertedIntoUncertainty {
-    after element EObject inserted in uncertaintyModel::UncertaintyLocation[referencesComponents]
+    after element EObject inserted in uncertaintyModel::UncertaintyLocation[referencedComponents]
     call handleBrakeDiskUncertainty(affectedEObject, newValue)
 }
 

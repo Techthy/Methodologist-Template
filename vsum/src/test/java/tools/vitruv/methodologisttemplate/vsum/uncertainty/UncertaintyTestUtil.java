@@ -98,7 +98,7 @@ public class UncertaintyTestUtil {
 				.iterator().next()
 				.getUncertainties().stream()
 				.filter(u -> u.getUncertaintyLocation()
-						.getReferencesComponents().stream()
+						.getReferencedComponents().stream()
 						.anyMatch(c -> c instanceof BrakeDisk))
 				.toList();
 	}
@@ -108,7 +108,7 @@ public class UncertaintyTestUtil {
 				.iterator().next()
 				.getUncertainties().stream()
 				.filter(u -> u.getUncertaintyLocation()
-						.getReferencesComponents().stream()
+						.getReferencedComponents().stream()
 						.anyMatch(c -> c instanceof Circle))
 				.toList();
 	}

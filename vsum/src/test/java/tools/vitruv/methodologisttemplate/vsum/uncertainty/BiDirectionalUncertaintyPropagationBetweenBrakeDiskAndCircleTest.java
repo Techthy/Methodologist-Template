@@ -109,13 +109,13 @@ public class BiDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleTest {
 
 							long brakeUncertaintiesCount = brakeDiskUncertainties.stream()
 									.filter(u -> u.getUncertaintyLocation()
-											.getReferencesComponents()
+											.getReferencedComponents()
 											.stream().anyMatch(c -> ((BrakeDisk) c).getDiameterInMM() == 120))
 									.count();
 
 							long circleUncertaintiesCount = circleUncertainties.stream()
 									.filter(u -> u.getUncertaintyLocation()
-											.getReferencesComponents()
+											.getReferencedComponents()
 											.stream()
 											.anyMatch(c -> ((Circle) c).getRadius() == 60))
 									.count();
@@ -139,7 +139,7 @@ public class BiDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleTest {
 		var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
 		uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
 		uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
-		uncertaintyLocation.getReferencesComponents().add(object);
+		uncertaintyLocation.getReferencedComponents().add(object);
 
 		var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
 		uncertainty.setUncertaintyLocation(uncertaintyLocation);

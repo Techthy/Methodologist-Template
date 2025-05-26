@@ -111,7 +111,7 @@ public class PropagateToSingeCorrespondingEntityTest {
 									.getUncertainties().get(1);
 							EObject ref = circleUncertainty
 									.getUncertaintyLocation()
-									.getReferencesComponents()
+									.getReferencedComponents()
 									.get(0);
 							return s == 2 && ref instanceof Circle;
 
@@ -123,7 +123,7 @@ public class PropagateToSingeCorrespondingEntityTest {
 		var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
 		uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
 		uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
-		uncertaintyLocation.getReferencesComponents().add(object);
+		uncertaintyLocation.getReferencedComponents().add(object);
 
 		var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
 		uncertainty.setUncertaintyLocation(uncertaintyLocation);

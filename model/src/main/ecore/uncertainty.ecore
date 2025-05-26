@@ -16,6 +16,9 @@
         defaultValueLiteral="DefaultID"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="effect" eType="#//Effect"
         containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="onDelete" eType="#//OnDeleteMode"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pattern" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="perspective" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="UncertaintyKind">
     <eLiterals name="BeliefUncertainty" value="1"/>
@@ -46,20 +49,45 @@
     <eLiterals name="ModelOutcomeUncertainty"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="UncertaintyLocation">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="referencesComponents" upperBound="-1"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="referencedComponents" upperBound="-1"
         eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="location" eType="#//UncertaintyLocationType"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="specification" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Effect">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="specification" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="effectTypes" upperBound="-1"
-        eType="#//EffectType"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="representation" eType="#//StructuralEffectTypeRepresentation"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="stochasticity" eType="#//StochasticityEffectType"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EEnum" name="EffectType">
-    <eLiterals name="Stochastic"/>
-    <eLiterals name="Continuous" value="2"/>
-    <eLiterals name="Discrete" value="3"/>
-    <eLiterals name="Scenario" value="1"/>
+  <eClassifiers xsi:type="ecore:EEnum" name="OnDeleteMode">
+    <eLiterals name="NO_ACTION"/>
+    <eLiterals name="CASCADE" value="1"/>
+    <eLiterals name="RESTRICT" value="2"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="StructuralEffectTypeRepresentation">
+    <eLiterals name="Continous"/>
+    <eLiterals name="Discrete" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="StochasticityEffectType">
+    <eLiterals name="Probabilistic"/>
+    <eLiterals name="NonDeterministic" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Pattern">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="patternType" eType="#//PatternType"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="UncertaintyPerspective">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="perspective" eType="#//UncertaintyPerspectiveType"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="specification" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="PatternType">
+    <eLiterals name="Periodic"/>
+    <eLiterals name="Persistent" value="1"/>
+    <eLiterals name="Sporadic" value="2"/>
+    <eLiterals name="Transient" value="3"/>
+    <eLiterals name="Random" value="4"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UncertaintyPerspectiveType">
+    <eLiterals name="Subjective"/>
+    <eLiterals name="Objective" value="1"/>
   </eClassifiers>
 </ecore:EPackage>

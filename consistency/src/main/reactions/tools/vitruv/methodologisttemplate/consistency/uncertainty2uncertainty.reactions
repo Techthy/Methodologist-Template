@@ -15,7 +15,7 @@ in reaction to changes in uncertaintyModel
 execute actions in uncertaintyModel
 
 reaction ReferenceInsertedIntoUncertaintyLocation {
-    after element EObject inserted in uncertaintyModel::UncertaintyLocation[referencesComponents]
+    after element EObject inserted in uncertaintyModel::UncertaintyLocation[referencedComponents]
     call createCorrespondingUncertaintyReference(affectedEObject, newValue)
 }
 routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLocation location, EObject referencedElement) {
@@ -57,13 +57,13 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
             val locationList = uncertaintyList.map[uncertaintyLocation].toList as List<UncertaintyLocation>;
         
             // question: is it correct that we also want to fetch a location that potentially links to more elements?
-            val uncertaintyLocationsWithSameReference = locationList.filter[loc | loc.referencesComponents.contains(correspondingElement)];
+            val uncertaintyLocationsWithSameReference = locationList.filter[loc | loc.referencedComponents.contains(correspondingElement)];
             
             if (uncertaintyLocationsWithSameReference.isEmpty()) {
                 // No matching UncertaintyLocation found -> create new Uncertainty and UncertaintyLocation
                 // Create a new UncertaintyLocation
                 val newUncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
-                newUncertaintyLocation.getReferencesComponents.add(correspondingElement);
+                newUncertaintyLocation.getReferencedComponents.add(correspondingElement);
                 newUncertaintyLocation.setLocation(location.getLocation());
                 newUncertaintyLocation.setSpecification(location.getSpecification() + EcoreUtil.generateUUID());
                 // Create a new Uncertainty
@@ -87,7 +87,7 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
                 if (existingMatch === null) {
                         // Different Uncertainty found, create a new one and new UncertaintyLocation
                         val newUncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
-                        newUncertaintyLocation.getReferencesComponents.add(correspondingElement);
+                        newUncertaintyLocation.getReferencedComponents.add(correspondingElement);
                         newUncertaintyLocation.setLocation(location.getLocation());
                         newUncertaintyLocation.setSpecification(location.getSpecification());
 

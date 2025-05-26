@@ -125,19 +125,19 @@ public class PropagateToSingleCorrespondingEntityNoOtherEntitiesAffectedTest {
 
 							boolean hasBrakeDisk120 = brakeDiskUncertainties.stream()
 									.anyMatch(u -> u.getUncertaintyLocation()
-											.getReferencesComponents()
+											.getReferencedComponents()
 											.stream()
 											.anyMatch(c -> ((BrakeDisk) c).getDiameterInMM() == 120));
 
 							boolean hasCircle60 = circleUncertainties.stream()
 									.anyMatch(u -> u.getUncertaintyLocation()
-											.getReferencesComponents()
+											.getReferencedComponents()
 											.stream()
 											.anyMatch(c -> ((Circle) c).getRadius() == 60));
 
 							boolean noCircle25 = circleUncertainties.stream()
 									.noneMatch(u -> u.getUncertaintyLocation()
-											.getReferencesComponents()
+											.getReferencedComponents()
 											.stream()
 											.anyMatch(c -> ((Circle) c).getRadius() == 25));
 
@@ -150,7 +150,7 @@ public class PropagateToSingleCorrespondingEntityNoOtherEntitiesAffectedTest {
 		var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
 		uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
 		uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
-		uncertaintyLocation.getReferencesComponents().add(object);
+		uncertaintyLocation.getReferencedComponents().add(object);
 
 		var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
 		uncertainty.setUncertaintyLocation(uncertaintyLocation);
