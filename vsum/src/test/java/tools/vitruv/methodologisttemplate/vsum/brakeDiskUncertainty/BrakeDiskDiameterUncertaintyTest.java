@@ -2,6 +2,7 @@ package tools.vitruv.methodologisttemplate.vsum.brakeDiskUncertainty;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -24,7 +25,6 @@ import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.vsum.VirtualModel;
 import tools.vitruv.methodologisttemplate.vsum.uncertainty.AddAndRemoveUncertaintyTest;
 import tools.vitruv.methodologisttemplate.vsum.uncertainty.UncertaintyTestUtil;
-import uncertainty.Effect;
 import uncertainty.ReducabilityLevel;
 import uncertainty.StochasticityEffectType;
 import uncertainty.StructuralEffectTypeRepresentation;
@@ -86,7 +86,15 @@ public class BrakeDiskDiameterUncertaintyTest {
                                                         .filter(d -> d.getDiameterInMM() == 200)
                                                         .findFirst().orElseThrow();
 
-                                        var uncertainty = createUncertainty("FromDisk", brakeDisk);
+                                        var uncertainty = UncertaintyTestUtil.createUncertainty(
+                                                        Optional.of(UncertaintyKind.BELIEF_UNCERTAINTY),
+                                                        Optional.empty(), Optional.empty(), Optional.empty(),
+                                                        Optional.empty(), Optional.empty(), Optional.of("FromDisk"),
+                                                        List.of(brakeDisk), Optional.of("N=(196,5)"),
+                                                        Optional.of(StructuralEffectTypeRepresentation.CONTINOUS),
+                                                        Optional.of(StochasticityEffectType.PROBABILISTIC),
+                                                        Optional.empty(), Optional.empty(),
+                                                        Optional.empty());
 
                                         // Trigger propagation
                                         brakeDisk.setSpecificationType("propagationTest");
@@ -116,11 +124,6 @@ public class BrakeDiskDiameterUncertaintyTest {
                 uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
                 uncertaintyLocation.getReferencedComponents().add(object);
 
-                Effect effect = UncertaintyFactory.eINSTANCE.createEffect();
-                effect.setSpecification("N=(196,5)");
-                effect.setStochasticity(StochasticityEffectType.PROBABILISTIC);
-                effect.setRepresentation(StructuralEffectTypeRepresentation.CONTINOUS);
-
                 var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
                 uncertainty.setUncertaintyLocation(uncertaintyLocation);
                 uncertainty.setKind(UncertaintyKind.BELIEF_UNCERTAINTY);
@@ -128,7 +131,6 @@ public class BrakeDiskDiameterUncertaintyTest {
                 uncertainty.setNature(UncertaintyNature.ALEATORY);
                 uncertainty.setSetManually(true);
                 uncertainty.setId(EcoreUtil.generateUUID());
-                uncertainty.setEffect(effect);
                 return uncertainty;
         }
 
