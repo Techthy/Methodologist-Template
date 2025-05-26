@@ -1,14 +1,14 @@
 
-import java.io.File;
 import java.util.List;
 import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyLocation;
 import uncertainty.UncertaintyFactory;
+import uncertainty.StochasticityEffectType;
+import uncertainty.StructuralEffectTypeRepresentation;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import brakesystem.BrakeDisk;
 import uncertainty.UncertaintyKind;
-import uncertainty.EffectType;
 import cad.Circle;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -55,19 +55,17 @@ routine handleBrakeDiskUncertainty(uncertaintyModel::UncertaintyLocation locatio
         if (effect === null) return;
         val regex = "N=\\(\\d+,\\d+\\)";
         val pattern = Pattern.compile(regex);
-        val eventSpecification = sourceUncertainty.effect.specification;
-        val matcher = pattern.matcher(eventSpecification);
+		val effectSpecification = sourceUncertainty.effect.specification;
+        val matcher = pattern.matcher(effectSpecification);
         if (!matcher.matches()) return;
-        val effectTypes = effect.effectTypes;
-        if (!effectTypes.contains(EffectType.CONTINUOUS)) return;
-        if (!effectTypes.contains(EffectType.STOCHASTIC)) return;
-
+        if (effect.stochasticity !== StochasticityEffectType.PROBABILISTIC) return;
+        if (effect.representation !== StructuralEffectTypeRepresentation.CONTINOUS) return;
         // Uncertainty is valid
 
         // get the expectation value mu from the specification string
-        val startIdx = eventSpecification.indexOf('(') + 1;
-        val commaIdx = eventSpecification.indexOf(',', startIdx);
-        val muStr = eventSpecification.substring(startIdx, commaIdx).trim();
+        val startIdx = effectSpecification.indexOf('(') + 1;
+        val commaIdx = effectSpecification.indexOf(',', startIdx);
+        val muStr = effectSpecification.substring(startIdx, commaIdx).trim();
         val mu = Integer.parseInt(muStr);
 
 
