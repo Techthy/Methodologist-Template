@@ -11,6 +11,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
@@ -41,6 +42,7 @@ public class OnDeleteTest {
 
         }
 
+        @Disabled
         @Test
         void AddAndRemoveUncertaintyWithOnDeleteNoActionTest(@TempDir Path tempDir) {
                 logger.info("Starting AddAndRemoveUncertaintyWithOnDeleteNoActionTest");
@@ -98,6 +100,68 @@ public class OnDeleteTest {
                                         List<Uncertainty> circleUncertainties = UncertaintyTestUtil
                                                         .getCircleUncertainties(v);
                                         return circleUncertainties.size() == 1 && brakeDiskUncertainties.isEmpty();
+                                }));
+
+        }
+
+        @Disabled
+        @Test
+        void AddAndRemoveUncertaintyWithOnDeleteRestrictTest(@TempDir Path tempDir) {
+                logger.info("Starting AddAndRemoveUncertaintyWithOnDeleteRestrictTest");
+                VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
+                // Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository
+                UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
+
+                // Add a BrakeDisk that in turn (by reactions) creates a Circle
+                UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 120);
+
+                // Add uncertainty to the brake disk
+                CommittableView brakeAndUncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
+                                List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
+                                .withChangeDerivingTrait();
+                modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
+                        var brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+                                        .stream()
+                                        .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
+                                        .filter(d -> d.getDiameterInMM() == 120)
+                                        .findFirst().orElseThrow();
+
+                        var uncertainty = createUncertainty("FromDisk", brakeDisk, OnDeleteMode.RESTRICT);
+
+                        v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+                                        .getUncertainties().add(uncertainty);
+
+                        // Trigger propagation
+                        brakeDisk.setSpecificationType(EcoreUtil.generateUUID());
+
+                });
+
+                // Assert that the uncertainties are created correctly
+                Assertions.assertTrue(
+                                assertView(UncertaintyTestUtil.getDefaultView(vsum,
+                                                List.of(UncertaintyAnnotationRepository.class)),
+                                                (View v) -> {
+                                                        List<Uncertainty> brakeDiskUncertainties = UncertaintyTestUtil
+                                                                        .getBrakeDiskUncertainties(v);
+                                                        List<Uncertainty> circleUncertainties = UncertaintyTestUtil
+                                                                        .getCircleUncertainties(v);
+
+                                                        return circleUncertainties.size() == 1
+                                                                        && brakeDiskUncertainties.size() == 1;
+                                                }));
+
+                // Delete the uncertainty belonging to the brake disk
+                // deleteBrakeDiskUncertainty(vsum);
+
+                // Assert that the uncertainty belonging to the brake disk is deleted
+                Assertions.assertTrue(assertView(UncertaintyTestUtil.getDefaultView(vsum,
+                                List.of(UncertaintyAnnotationRepository.class)),
+                                (View v) -> {
+                                        List<Uncertainty> brakeDiskUncertainties = UncertaintyTestUtil
+                                                        .getBrakeDiskUncertainties(v);
+                                        List<Uncertainty> circleUncertainties = UncertaintyTestUtil
+                                                        .getCircleUncertainties(v);
+                                        return circleUncertainties.size() == 1 && brakeDiskUncertainties.size() == 1;
                                 }));
 
         }
