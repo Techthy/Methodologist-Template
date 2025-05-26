@@ -55,7 +55,6 @@ public class AddAndRemoveUncertaintyTest {
 	@Disabled
 	@Test
 	void addUncertaintyAndRemove(@TempDir Path tempDir) {
-		logger.debug("=== Starting test ===");
 		VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
 		// Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository
 		UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
