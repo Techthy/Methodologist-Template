@@ -53,12 +53,17 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
         //  Xtend Code Implementation
         // =========
 
-         val sourceUncertainty = location.eContainer() as Uncertainty;
+        // Retrieve all source elements
+        val sourceUncertainty = location.eContainer() as Uncertainty;
+        val sourceEffect = sourceUncertainty.getEffect();
+        val sourcePattern = sourceUncertainty.getPattern();
+        val sourcePerspective = sourceUncertainty.getPerspective();
+
         for (correspondingElement : correspondingReferenceList) {
             val annotationRepository = sourceUncertainty.eContainer() as UncertaintyAnnotationRepository; 
             val uncertaintyList = annotationRepository.uncertainties as List<Uncertainty>;
             val locationList = uncertaintyList.map[uncertaintyLocation].toList as List<UncertaintyLocation>;
-        
+
             // question: is it correct that we also want to fetch a location that potentially links to more elements?
             val uncertaintyLocationsWithSameReference = locationList.filter[loc | loc.referencedComponents.contains(correspondingElement)];
             
@@ -69,6 +74,19 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
                 newUncertaintyLocation.getReferencedComponents.add(correspondingElement);
                 newUncertaintyLocation.setLocation(location.getLocation());
                 newUncertaintyLocation.setSpecification(location.getSpecification() + EcoreUtil.generateUUID());
+                
+                val newEffect = UncertaintyFactory.eINSTANCE.createEffect();
+                newEffect.setSpecification(sourceEffect.getSpecification());
+                newEffect.setRepresentation(sourceEffect.getRepresentation());
+                newEffect.setStochasticity(sourceEffect.getStochasticity());
+
+                val newPattern = UncertaintyFactory.eINSTANCE.createPattern();
+                newPattern.setPatternType(sourcePattern.getPatternType());
+
+                val newPerspective = UncertaintyFactory.eINSTANCE.createUncertaintyPerspective();
+                newPerspective.setPerspective(sourcePerspective.getPerspective());
+                newPerspective.setSpecification(sourcePerspective.getSpecification());
+
                 // Create a new Uncertainty
                 val newUncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
                 newUncertainty.setKind(sourceUncertainty.getKind());
@@ -76,6 +94,10 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
                 newUncertainty.setNature(sourceUncertainty.getNature());
                 newUncertainty.setUncertaintyLocation(newUncertaintyLocation);
                 newUncertainty.setId(EcoreUtil.generateUUID());
+                newUncertainty.setEffect(newEffect);
+                newUncertainty.setPattern(newPattern);
+                newUncertainty.setPerspective(newPerspective);
+                newUncertainty.setOnDelete(sourceUncertainty.getOnDelete());
 
                 addCorrespondenceBetween(newUncertainty, sourceUncertainty);
                 annotationRepository.getUncertainties.add(newUncertainty);
@@ -85,20 +107,45 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
                     val containingUncertainty = eContainer as Uncertainty
                     containingUncertainty.kind == sourceUncertainty.kind &&
                     containingUncertainty.reducability == sourceUncertainty.reducability &&
-                    containingUncertainty.nature == sourceUncertainty.nature
+                    containingUncertainty.nature == sourceUncertainty.nature &&
+                    containingUncertainty.onDelete == sourceUncertainty.onDelete &&
+                    containingUncertainty.effect.specification == sourceEffect.specification &&
+                    containingUncertainty.effect.representation == sourceEffect.representation &&
+                    containingUncertainty.effect.stochasticity == sourceEffect.stochasticity &&
+                    containingUncertainty.pattern.patternType == sourcePattern.patternType &&
+                    containingUncertainty.perspective.perspective == sourcePerspective.perspective &&
+                    containingUncertainty.perspective.specification == sourcePerspective.specification
                 ]
                 if (existingMatch === null) {
                         // Different Uncertainty found, create a new one and new UncertaintyLocation
                         val newUncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
                         newUncertaintyLocation.getReferencedComponents.add(correspondingElement);
                         newUncertaintyLocation.setLocation(location.getLocation());
-                        newUncertaintyLocation.setSpecification(location.getSpecification());
+                        newUncertaintyLocation.setSpecification(location.getSpecification() + EcoreUtil.generateUUID());
+                        
+                        val newEffect = UncertaintyFactory.eINSTANCE.createEffect();
+                        newEffect.setSpecification(sourceEffect.getSpecification());
+                        newEffect.setRepresentation(sourceEffect.getRepresentation());
+                        newEffect.setStochasticity(sourceEffect.getStochasticity());
 
+                        val newPattern = UncertaintyFactory.eINSTANCE.createPattern();
+                        newPattern.setPatternType(sourcePattern.getPatternType());
+
+                        val newPerspective = UncertaintyFactory.eINSTANCE.createUncertaintyPerspective();
+                        newPerspective.setPerspective(sourcePerspective.getPerspective());
+                        newPerspective.setSpecification(sourcePerspective.getSpecification());
+
+                        // Create a new Uncertainty
                         val newUncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
                         newUncertainty.setKind(sourceUncertainty.getKind());
                         newUncertainty.setReducability(sourceUncertainty.getReducability());
                         newUncertainty.setNature(sourceUncertainty.getNature());
                         newUncertainty.setUncertaintyLocation(newUncertaintyLocation);
+                        newUncertainty.setId(EcoreUtil.generateUUID());
+                        newUncertainty.setEffect(newEffect);
+                        newUncertainty.setPattern(newPattern);
+                        newUncertainty.setPerspective(newPerspective);
+                        newUncertainty.setOnDelete(sourceUncertainty.getOnDelete());
 
                         addCorrespondenceBetween(newUncertainty, sourceUncertainty);
                         annotationRepository.getUncertainties.add(newUncertainty);
