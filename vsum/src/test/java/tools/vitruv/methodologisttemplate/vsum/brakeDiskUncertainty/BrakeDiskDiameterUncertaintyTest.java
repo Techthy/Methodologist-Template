@@ -6,9 +6,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,125 +22,103 @@ import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.vsum.VirtualModel;
 import tools.vitruv.methodologisttemplate.vsum.uncertainty.AddAndRemoveUncertaintyTest;
+import tools.vitruv.methodologisttemplate.vsum.uncertainty.CreateUncertaintyUtil;
 import tools.vitruv.methodologisttemplate.vsum.uncertainty.UncertaintyTestUtil;
-import uncertainty.ReducabilityLevel;
 import uncertainty.StochasticityEffectType;
 import uncertainty.StructuralEffectTypeRepresentation;
-import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
-import uncertainty.UncertaintyFactory;
-import uncertainty.UncertaintyKind;
-import uncertainty.UncertaintyLocationType;
-import uncertainty.UncertaintyNature;
 
 public class BrakeDiskDiameterUncertaintyTest {
-        private static final Logger logger = org.slf4j.LoggerFactory
-                        .getLogger(AddAndRemoveUncertaintyTest.class);
+	private static final Logger logger = org.slf4j.LoggerFactory
+			.getLogger(AddAndRemoveUncertaintyTest.class);
 
-        @BeforeAll
-        static void setup() {
-                Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("*",
-                                new XMIResourceFactoryImpl());
+	@BeforeAll
+	static void setup() {
+		Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("*",
+				new XMIResourceFactoryImpl());
 
-        }
+	}
 
-        @Test
-        void changeBrakeDiskDiameterWithUncertainty(@TempDir Path tempDir) {
-                VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
-                UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
+	@Test
+	void changeBrakeDiskDiameterWithUncertainty(@TempDir Path tempDir) {
+		VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
+		UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
 
-                UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 200);
+		UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 200);
 
-                // Assert that brake disk with diameter 200 and circle with radius 100 are
-                // present
-                Assertions.assertTrue(assertView(UncertaintyTestUtil.getDefaultView(vsum,
-                                List.of(CADRepository.class, Brakesystem.class)), (View view) -> {
-                                        boolean circlePresent = view.getRootObjects(CADRepository.class).iterator()
-                                                        .next().getCadElements()
-                                                        .stream()
-                                                        .filter(Circle.class::isInstance).map(Circle.class::cast)
-                                                        .filter(d -> d.getRadius() == 100)
-                                                        .findFirst().isPresent();
-                                        logger.debug("Circle present: " + circlePresent);
-                                        boolean brakeDiskPresent = view.getRootObjects(Brakesystem.class).iterator()
-                                                        .next()
-                                                        .getBrakeComponents()
-                                                        .stream()
-                                                        .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
-                                                        .filter(d -> d.getDiameterInMM() == 200)
-                                                        .findFirst().isPresent();
-                                        logger.debug("BrakeDisk present: " + brakeDiskPresent);
-                                        return circlePresent;
-                                }));
+		// Assert that brake disk with diameter 200 and circle with radius 100 are
+		// present
+		Assertions.assertTrue(assertView(UncertaintyTestUtil.getDefaultView(vsum,
+				List.of(CADRepository.class, Brakesystem.class)), (View view) -> {
+					boolean circlePresent = view.getRootObjects(CADRepository.class).iterator()
+							.next().getCadElements()
+							.stream()
+							.filter(Circle.class::isInstance).map(Circle.class::cast)
+							.filter(d -> d.getRadius() == 100)
+							.findFirst().isPresent();
+					logger.debug("Circle present: " + circlePresent);
+					boolean brakeDiskPresent = view.getRootObjects(Brakesystem.class).iterator()
+							.next()
+							.getBrakeComponents()
+							.stream()
+							.filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
+							.filter(d -> d.getDiameterInMM() == 200)
+							.findFirst().isPresent();
+					logger.debug("BrakeDisk present: " + brakeDiskPresent);
+					return circlePresent;
+				}));
 
-                modifyView(UncertaintyTestUtil.getDefaultView(vsum,
-                                List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-                                .withChangeDerivingTrait(),
-                                (CommittableView v) -> {
-                                        var brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next()
-                                                        .getBrakeComponents()
-                                                        .stream()
-                                                        .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
-                                                        .filter(d -> d.getDiameterInMM() == 200)
-                                                        .findFirst().orElseThrow();
+		modifyView(UncertaintyTestUtil.getDefaultView(vsum,
+				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
+				.withChangeDerivingTrait(),
+				(CommittableView v) -> {
+					var brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next()
+							.getBrakeComponents()
+							.stream()
+							.filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
+							.filter(d -> d.getDiameterInMM() == 200)
+							.findFirst().orElseThrow();
 
-                                        var uncertainty = UncertaintyTestUtil.createUncertainty(
-                                                        Optional.of(UncertaintyKind.BELIEF_UNCERTAINTY),
-                                                        Optional.empty(), Optional.empty(), Optional.empty(),
-                                                        Optional.empty(), Optional.empty(), Optional.of("FromDisk"),
-                                                        List.of(brakeDisk), Optional.of("N=(196,5)"),
-                                                        Optional.of(StructuralEffectTypeRepresentation.CONTINOUS),
-                                                        Optional.of(StochasticityEffectType.PROBABILISTIC),
-                                                        Optional.empty(), Optional.empty(),
-                                                        Optional.empty());
+					var uncertaintyLocation = CreateUncertaintyUtil.createUncertaintyLocation(Optional.empty(),
+							Optional.of("FromDisk"), List.of(brakeDisk));
+					var uncertaintyEffect = CreateUncertaintyUtil.createEffect(Optional.of("N=(196,5)"),
+							Optional.of(StructuralEffectTypeRepresentation.CONTINOUS),
+							Optional.of(StochasticityEffectType.PROBABILISTIC));
+					var uncertainty = CreateUncertaintyUtil.createUncertainty(
+							Optional.empty(), Optional.of(uncertaintyLocation), Optional.of(uncertaintyEffect),
+							Optional.empty(), Optional.empty());
 
-                                        // Trigger propagation
-                                        brakeDisk.setSpecificationType("propagationTest");
+					// Trigger propagation
+					brakeDisk.setSpecificationType("propagationTest");
 
-                                        v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
-                                                        .getUncertainties().add(uncertainty);
+					v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+							.getUncertainties().add(uncertainty);
 
-                                });
+				});
 
-                // Assert that the diameter of the circle is changed to 98
-                // (half of the expectation)
-                Assertions.assertTrue(assertView(UncertaintyTestUtil.getDefaultView(vsum,
-                                List.of(CADRepository.class)), (View view) -> {
-                                        return view.getRootObjects(CADRepository.class).iterator().next()
-                                                        .getCadElements()
-                                                        .stream()
-                                                        .filter(Circle.class::isInstance).map(Circle.class::cast)
-                                                        .filter(d -> d.getRadius() == 98)
-                                                        .findFirst().isPresent();
-                                }));
+		// Assert that the diameter of the circle is changed to 98
+		// (half of the expectation)
+		Assertions.assertTrue(assertView(UncertaintyTestUtil.getDefaultView(vsum,
+				List.of(CADRepository.class)), (View view) -> {
+					return view.getRootObjects(CADRepository.class).iterator().next()
+							.getCadElements()
+							.stream()
+							.filter(Circle.class::isInstance).map(Circle.class::cast)
+							.filter(d -> d.getRadius() == 98)
+							.findFirst().isPresent();
+				}));
 
-        }
+	}
 
-        private Uncertainty createUncertainty(String uncertaintyLocationSpecification, EObject object) {
-                var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
-                uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
-                uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
-                uncertaintyLocation.getReferencedComponents().add(object);
+	// These functions are only for convience, as they make the code a bit better
+	// readable
+	private void modifyView(CommittableView view, Consumer<CommittableView> modificationFunction) {
+		modificationFunction.accept(view);
+		view.commitChanges();
+	}
 
-                var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
-                uncertainty.setUncertaintyLocation(uncertaintyLocation);
-                uncertainty.setKind(UncertaintyKind.BELIEF_UNCERTAINTY);
-                uncertainty.setReducability(ReducabilityLevel.UNKNOWN);
-                uncertainty.setNature(UncertaintyNature.ALEATORY);
-                uncertainty.setSetManually(true);
-                uncertainty.setId(EcoreUtil.generateUUID());
-                return uncertainty;
-        }
-
-        // These functions are only for convience, as they make the code a bit better
-        // readable
-        private void modifyView(CommittableView view, Consumer<CommittableView> modificationFunction) {
-                modificationFunction.accept(view);
-                view.commitChanges();
-        }
-
-        private boolean assertView(View view, Function<View, Boolean> viewAssertionFunction) {
-                return viewAssertionFunction.apply(view);
-        }
+	private boolean assertView(View view, Function<View, Boolean> viewAssertionFunction) {
+		return viewAssertionFunction.apply(view);
+	}
 
 }
