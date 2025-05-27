@@ -3,12 +3,9 @@ package tools.vitruv.methodologisttemplate.vsum.uncertainty;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import brakesystem.BrakeDisk;
 import brakesystem.Brakesystem;
@@ -27,22 +24,9 @@ import tools.vitruv.framework.views.ViewTypeFactory;
 import tools.vitruv.framework.vsum.VirtualModel;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 import tools.vitruv.framework.vsum.internal.InternalVirtualModel;
-import uncertainty.Effect;
-import uncertainty.OnDeleteMode;
-import uncertainty.Pattern;
-import uncertainty.PatternType;
-import uncertainty.ReducabilityLevel;
-import uncertainty.StochasticityEffectType;
-import uncertainty.StructuralEffectTypeRepresentation;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.UncertaintyFactory;
-import uncertainty.UncertaintyKind;
-import uncertainty.UncertaintyLocation;
-import uncertainty.UncertaintyLocationType;
-import uncertainty.UncertaintyNature;
-import uncertainty.UncertaintyPerspective;
-import uncertainty.UncertaintyPerspectiveType;
 
 public class UncertaintyTestUtil {
 
@@ -127,62 +111,6 @@ public class UncertaintyTestUtil {
 						.getReferencedComponents().stream()
 						.anyMatch(c -> c instanceof Circle))
 				.toList();
-	}
-
-	public static Uncertainty createUncertainty(
-			// Uncertainty parameters
-			Optional<UncertaintyKind> uncertaintyKind,
-			Optional<ReducabilityLevel> reducabilityLevel,
-			Optional<UncertaintyNature> uncertaintyNature,
-			Optional<Boolean> isSetManually,
-			Optional<OnDeleteMode> onDeleteMode,
-			// UncertaintyLocation parameters
-			Optional<UncertaintyLocationType> uncertaintyLocationType,
-			Optional<String> uncertaintyLocationSpecification,
-			List<EObject> referencedComponents,
-			// Effect parameters
-			Optional<String> effectSpecification,
-			Optional<StructuralEffectTypeRepresentation> structuralEffectTypeRepresentation,
-			Optional<StochasticityEffectType> stochasticityEffectTypeRepresentation,
-			// Perspective parameters
-			Optional<String> perspectiveSpecification,
-			Optional<UncertaintyPerspectiveType> perspectiveType,
-			// Patern parameters
-			Optional<PatternType> patternType) {
-
-		UncertaintyLocation location = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
-		location.setLocation(uncertaintyLocationType.orElse(UncertaintyLocationType.PARAMETER));
-		location.setSpecification(uncertaintyLocationSpecification.orElse(""));
-		location.getReferencedComponents().addAll(referencedComponents);
-
-		Effect effect = UncertaintyFactory.eINSTANCE.createEffect();
-		effect.setSpecification(effectSpecification.orElse(""));
-		effect.setRepresentation(
-				structuralEffectTypeRepresentation.orElse(StructuralEffectTypeRepresentation.CONTINOUS));
-		effect.setStochasticity(
-				stochasticityEffectTypeRepresentation.orElse(StochasticityEffectType.PROBABILISTIC));
-
-		UncertaintyPerspective perspective = UncertaintyFactory.eINSTANCE
-				.createUncertaintyPerspective();
-		perspective.setSpecification(perspectiveSpecification.orElse(""));
-		perspective.setPerspective(perspectiveType.orElse(UncertaintyPerspectiveType.OBJECTIVE));
-
-		Pattern pattern = UncertaintyFactory.eINSTANCE.createPattern();
-		pattern.setPatternType(patternType.orElse(PatternType.PERSISTENT));
-
-		Uncertainty uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
-		uncertainty.setId(EcoreUtil.generateUUID());
-		uncertainty.setKind(uncertaintyKind.orElse(UncertaintyKind.BEHAVIOR_UNCERTAINTY));
-		uncertainty.setReducability(reducabilityLevel.orElse(ReducabilityLevel.UNKNOWN));
-		uncertainty.setNature(uncertaintyNature.orElse(UncertaintyNature.ALEATORY));
-		uncertainty.setSetManually(isSetManually.orElse(true));
-		uncertainty.setOnDelete(onDeleteMode.orElse(OnDeleteMode.CASCADE));
-		uncertainty.setUncertaintyLocation(location);
-		uncertainty.setEffect(effect);
-		uncertainty.setPerspective(perspective);
-		uncertainty.setPattern(pattern);
-
-		return uncertainty;
 	}
 
 }
