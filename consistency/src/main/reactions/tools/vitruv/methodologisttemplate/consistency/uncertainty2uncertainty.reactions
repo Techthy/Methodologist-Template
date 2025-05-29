@@ -219,4 +219,44 @@ routine deleteCorrespondingUncertainties(uncertaintyModel::Uncertainty sourceUnc
     }
 }
 
+reaction UncertaintyKindChanged {
+    after attribute replaced at uncertaintyModel::Uncertainty[kind] 
+    call updateUncertainties(affectedEObject)
+}
 
+reaction UncertaintyReducabilityChanged {
+    after attribute replaced at uncertaintyModel::Uncertainty[reducability] 
+    call updateUncertainties(affectedEObject)
+}
+reaction UncertaintyNatureChanged {
+    after attribute replaced at uncertaintyModel::Uncertainty[nature] 
+    call updateUncertainties(affectedEObject)
+}
+
+reaction UncertaintyOnDeleteChanged {
+    after attribute replaced at uncertaintyModel::Uncertainty[onDelete] 
+    call updateUncertainties(affectedEObject)
+}
+
+
+
+routine updateUncertainties(uncertaintyModel::Uncertainty sourceUncertainty){
+    match {
+        val uncertaintiesList = retrieve many uncertaintyModel::Uncertainty corresponding to sourceUncertainty
+    }
+    update {
+        // If there are no corresponding uncertainties: deletion of sourceUncertainty is allowed and no further action is needed
+        if (uncertaintiesList.isEmpty()) {
+            return;
+        } 
+
+        // Update all corresponding uncertainties with the new values from the sourceUncertainty
+        for (correspondingUncertainty : uncertaintiesList) {
+            // Other values have not changed but can be safely overwritten as they should be the same (CPR)
+            correspondingUncertainty.setKind(sourceUncertainty.getKind());
+            correspondingUncertainty.setReducability(sourceUncertainty.getReducability());
+            correspondingUncertainty.setNature(sourceUncertainty.getNature());
+            correspondingUncertainty.setOnDelete(sourceUncertainty.getOnDelete());
+        }
+    }
+}
