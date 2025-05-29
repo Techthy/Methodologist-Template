@@ -2,10 +2,11 @@ package tools.vitruv.methodologisttemplate.vsum.uncertainty;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 
+import brakesystem.BrakeComponent;
 import brakesystem.BrakeDisk;
 import brakesystem.Brakesystem;
 import cad.CADRepository;
@@ -22,13 +24,9 @@ import cad.Circle;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.vsum.VirtualModel;
-import uncertainty.ReducabilityLevel;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
-import uncertainty.UncertaintyFactory;
-import uncertainty.UncertaintyKind;
-import uncertainty.UncertaintyLocationType;
-import uncertainty.UncertaintyNature;
+import uncertainty.UncertaintyLocation;
 
 public class PropagateToSingleCorrespondingEntityNoOtherEntitiesAffectedTest {
 
@@ -60,15 +58,15 @@ public class PropagateToSingleCorrespondingEntityNoOtherEntitiesAffectedTest {
 				assertView(UncertaintyTestUtil.getDefaultView(vsum,
 						List.of(Brakesystem.class, CADRepository.class)),
 						(View v) -> {
-							var brakeComponents = v.getRootObjects(
+							EList<BrakeComponent> brakeComponents = v.getRootObjects(
 									Brakesystem.class).iterator()
 									.next()
 									.getBrakeComponents();
-							var brakeDiscs = brakeComponents.stream()
+							List<BrakeDisk> brakeDiscs = brakeComponents.stream()
 									.filter(BrakeDisk.class::isInstance)
 									.map(BrakeDisk.class::cast)
 									.toList();
-							var circles = v.getRootObjects(
+							List<Circle> circles = v.getRootObjects(
 									CADRepository.class).iterator()
 									.next().getCadElements()
 									.stream()
@@ -90,13 +88,17 @@ public class PropagateToSingleCorrespondingEntityNoOtherEntitiesAffectedTest {
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
 				.withChangeDerivingTrait(), (CommittableView v) -> {
-					var targetDisk = v.getRootObjects(Brakesystem.class).iterator().next()
+					BrakeDisk targetDisk = v.getRootObjects(Brakesystem.class).iterator().next()
 							.getBrakeComponents().stream().filter(BrakeDisk.class::isInstance)
 							.map(BrakeDisk.class::cast)
 							.filter(d -> d.getDiameterInMM() == 120)
 							.findFirst().orElseThrow();
 
-					var uncertainty = createUncertainty("120mm Disk", targetDisk);
+					UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory.createUncertaintyLocation(
+							List.of(targetDisk));
+					uncertaintyLocation.setSpecification("120mm");
+					Uncertainty uncertainty = UncertaintyTestFactory.createUncertainty(
+							Optional.of(uncertaintyLocation));
 
 					// Hack to make the change propagate
 					targetDisk.setSpecificationType(EcoreUtil.generateUUID());
@@ -120,8 +122,8 @@ public class PropagateToSingleCorrespondingEntityNoOtherEntitiesAffectedTest {
 				assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
 						(View v) -> {
 
-							var brakeDiskUncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
-							var circleUncertainties = UncertaintyTestUtil.getCircleUncertainties(v);
+							List<Uncertainty> brakeDiskUncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
+							List<Uncertainty> circleUncertainties = UncertaintyTestUtil.getCircleUncertainties(v);
 
 							boolean hasBrakeDisk120 = brakeDiskUncertainties.stream()
 									.anyMatch(u -> u.getUncertaintyLocation()
@@ -144,22 +146,6 @@ public class PropagateToSingleCorrespondingEntityNoOtherEntitiesAffectedTest {
 							return hasBrakeDisk120 && hasCircle60 && noCircle25;
 						}));
 
-	}
-
-	private Uncertainty createUncertainty(String uncertaintyLocationSpecification, EObject object) {
-		var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
-		uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
-		uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
-		uncertaintyLocation.getReferencedComponents().add(object);
-
-		var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
-		uncertainty.setUncertaintyLocation(uncertaintyLocation);
-		uncertainty.setKind(UncertaintyKind.MEASUREMENT_UNCERTAINTY);
-		uncertainty.setReducability(ReducabilityLevel.UNKNOWN);
-		uncertainty.setNature(UncertaintyNature.ALEATORY);
-		uncertainty.setSetManually(true);
-		uncertainty.setId(EcoreUtil.generateUUID());
-		return uncertainty;
 	}
 
 	// These functions are only for convience, as they make the code a bit better

@@ -2,6 +2,7 @@ package tools.vitruv.methodologisttemplate.vsum.uncertainty;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -22,13 +23,9 @@ import cad.Circle;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.vsum.VirtualModel;
-import uncertainty.ReducabilityLevel;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
-import uncertainty.UncertaintyFactory;
-import uncertainty.UncertaintyKind;
-import uncertainty.UncertaintyLocationType;
-import uncertainty.UncertaintyNature;
+import uncertainty.UncertaintyLocation;
 
 public class PropagateToSingeCorrespondingEntityTest {
 
@@ -77,12 +74,14 @@ public class PropagateToSingeCorrespondingEntityTest {
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
 				.withChangeDerivingTrait();
 		modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
-			var brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+			BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
 					.stream()
 					.filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
 					.findFirst().orElseThrow();
 
-			var uncertainty = createUncertainty("Diameter", brakeDisk);
+			UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+					.createUncertaintyLocation(List.of(brakeDisk));
+			Uncertainty uncertainty = UncertaintyTestFactory.createUncertainty(Optional.of(uncertaintyLocation));
 
 			v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
 					.getUncertainties().add(uncertainty);
@@ -117,22 +116,6 @@ public class PropagateToSingeCorrespondingEntityTest {
 
 						}));
 
-	}
-
-	private Uncertainty createUncertainty(String uncertaintyLocationSpecification, EObject object) {
-		var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
-		uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
-		uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
-		uncertaintyLocation.getReferencedComponents().add(object);
-
-		var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
-		uncertainty.setUncertaintyLocation(uncertaintyLocation);
-		uncertainty.setKind(UncertaintyKind.MEASUREMENT_UNCERTAINTY);
-		uncertainty.setReducability(ReducabilityLevel.UNKNOWN);
-		uncertainty.setNature(UncertaintyNature.ALEATORY);
-		uncertainty.setSetManually(true);
-		uncertainty.setId(EcoreUtil.generateUUID());
-		return uncertainty;
 	}
 
 	// These functions are only for convience, as they make the code a bit better
