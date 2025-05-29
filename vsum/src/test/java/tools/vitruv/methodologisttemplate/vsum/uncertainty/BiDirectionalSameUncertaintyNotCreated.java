@@ -2,10 +2,10 @@ package tools.vitruv.methodologisttemplate.vsum.uncertainty;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
@@ -22,13 +22,9 @@ import cad.Circle;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.vsum.VirtualModel;
-import uncertainty.ReducabilityLevel;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
-import uncertainty.UncertaintyFactory;
-import uncertainty.UncertaintyKind;
-import uncertainty.UncertaintyLocationType;
-import uncertainty.UncertaintyNature;
+import uncertainty.UncertaintyLocation;
 
 public class BiDirectionalSameUncertaintyNotCreated {
 	private static final Logger logger = org.slf4j.LoggerFactory
@@ -55,12 +51,14 @@ public class BiDirectionalSameUncertaintyNotCreated {
 				List.of(UncertaintyAnnotationRepository.class, CADRepository.class))
 				.withChangeDerivingTrait();
 		modifyView(uncertaintyCADView, (CommittableView v) -> {
-			var circle = v.getRootObjects(CADRepository.class).iterator().next().getCadElements().stream()
+			Circle circle = v.getRootObjects(CADRepository.class).iterator().next().getCadElements().stream()
 					.filter(Circle.class::isInstance).map(Circle.class::cast)
 					.filter(c -> c.getRadius() == 60)
 					.findFirst().orElseThrow();
 
-			var uncertainty = createUncertainty("FromCircle", circle);
+			UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory.createUncertaintyLocation(List.of(circle));
+			uncertaintyLocation.setSpecification("FromCircle");
+			Uncertainty uncertainty = UncertaintyTestFactory.createUncertainty(Optional.of(uncertaintyLocation));
 
 			// Make sure something changes to trigger propagation
 			circle.setIdentifier(EcoreUtil.generateUUID());
@@ -75,13 +73,16 @@ public class BiDirectionalSameUncertaintyNotCreated {
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
 				.withChangeDerivingTrait();
 		modifyView(view2, (CommittableView v) -> {
-			var brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+			BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
 					.stream()
 					.filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
 					.filter(d -> d.getDiameterInMM() == 120)
 					.findFirst().orElseThrow();
 
-			var uncertainty = createUncertainty("FromDisk", brakeDisk);
+			UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+					.createUncertaintyLocation(List.of(brakeDisk));
+			uncertaintyLocation.setSpecification("FromDisk");
+			Uncertainty uncertainty = UncertaintyTestFactory.createUncertainty(Optional.of(uncertaintyLocation));
 
 			// Trigger propagation
 			brakeDisk.setSpecificationType(EcoreUtil.generateUUID());
@@ -99,8 +100,8 @@ public class BiDirectionalSameUncertaintyNotCreated {
 		Assertions.assertTrue(
 				assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
 						(View v) -> {
-							var brakeDiskUncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
-							var circleUncertainties = UncertaintyTestUtil.getCircleUncertainties(v);
+							List<Uncertainty> brakeDiskUncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
+							List<Uncertainty> circleUncertainties = UncertaintyTestUtil.getCircleUncertainties(v);
 
 							boolean fromCirclePresent = brakeDiskUncertainties.stream()
 									.anyMatch(u -> u.getUncertaintyLocation().getSpecification()
@@ -113,22 +114,6 @@ public class BiDirectionalSameUncertaintyNotCreated {
 							return brakeDiskUncertainties.size() == 2 && circleUncertainties.size() == 1
 									&& fromCirclePresent && fromDiskPresent;
 						}));
-	}
-
-	private Uncertainty createUncertainty(String uncertaintyLocationSpecification, EObject object) {
-		var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
-		uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
-		uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
-		uncertaintyLocation.getReferencedComponents().add(object);
-
-		var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
-		uncertainty.setUncertaintyLocation(uncertaintyLocation);
-		uncertainty.setKind(UncertaintyKind.MEASUREMENT_UNCERTAINTY);
-		uncertainty.setReducability(ReducabilityLevel.UNKNOWN);
-		uncertainty.setNature(UncertaintyNature.ALEATORY);
-		uncertainty.setSetManually(true);
-		uncertainty.setId(EcoreUtil.generateUUID());
-		return uncertainty;
 	}
 
 	// These functions are only for convience, as they make the code a bit better

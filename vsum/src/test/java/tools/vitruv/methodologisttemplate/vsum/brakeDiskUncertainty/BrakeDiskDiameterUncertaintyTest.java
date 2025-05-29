@@ -22,11 +22,15 @@ import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.vsum.VirtualModel;
 import tools.vitruv.methodologisttemplate.vsum.uncertainty.AddAndRemoveUncertaintyTest;
-import tools.vitruv.methodologisttemplate.vsum.uncertainty.CreateUncertaintyUtil;
+import tools.vitruv.methodologisttemplate.vsum.uncertainty.UncertaintyTestFactory;
 import tools.vitruv.methodologisttemplate.vsum.uncertainty.UncertaintyTestUtil;
+import uncertainty.Effect;
 import uncertainty.StochasticityEffectType;
 import uncertainty.StructuralEffectTypeRepresentation;
+import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
+import uncertainty.UncertaintyKind;
+import uncertainty.UncertaintyLocation;
 
 public class BrakeDiskDiameterUncertaintyTest {
 	private static final Logger logger = org.slf4j.LoggerFactory
@@ -72,21 +76,25 @@ public class BrakeDiskDiameterUncertaintyTest {
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
 				.withChangeDerivingTrait(),
 				(CommittableView v) -> {
-					var brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next()
+					BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next()
 							.getBrakeComponents()
 							.stream()
 							.filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
 							.filter(d -> d.getDiameterInMM() == 200)
 							.findFirst().orElseThrow();
 
-					var uncertaintyLocation = CreateUncertaintyUtil.createUncertaintyLocation(Optional.empty(),
-							Optional.of("FromDisk"), List.of(brakeDisk));
-					var uncertaintyEffect = CreateUncertaintyUtil.createEffect(Optional.of("N=(196,5)"),
-							Optional.of(StructuralEffectTypeRepresentation.CONTINOUS),
-							Optional.of(StochasticityEffectType.PROBABILISTIC));
-					var uncertainty = CreateUncertaintyUtil.createUncertainty(
-							Optional.empty(), Optional.of(uncertaintyLocation), Optional.of(uncertaintyEffect),
-							Optional.empty(), Optional.empty());
+					UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+							.createUncertaintyLocation(List.of(brakeDisk));
+					uncertaintyLocation.setSpecification("FromDisk");
+					Effect uncertaintyEffect = UncertaintyTestFactory.createEffect();
+					uncertaintyEffect.setSpecification("N=(196,5)");
+					uncertaintyEffect.setRepresentation(StructuralEffectTypeRepresentation.CONTINOUS);
+					uncertaintyEffect.setStochasticity(StochasticityEffectType.PROBABILISTIC);
+
+					Uncertainty uncertainty = UncertaintyTestFactory
+							.createUncertainty(Optional.of(uncertaintyLocation));
+					uncertainty.setKind(UncertaintyKind.BELIEF_UNCERTAINTY);
+					uncertainty.setEffect(uncertaintyEffect);
 
 					// Trigger propagation
 					brakeDisk.setSpecificationType("propagationTest");
