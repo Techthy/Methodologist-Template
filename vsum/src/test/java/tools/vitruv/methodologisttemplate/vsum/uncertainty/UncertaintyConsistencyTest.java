@@ -20,10 +20,13 @@ import brakesystem.Brakesystem;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.vsum.VirtualModel;
+import uncertainty.Effect;
 import uncertainty.OnDeleteMode;
 import uncertainty.Pattern;
 import uncertainty.PatternType;
 import uncertainty.ReducabilityLevel;
+import uncertainty.StochasticityEffectType;
+import uncertainty.StructuralEffectTypeRepresentation;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.UncertaintyKind;
@@ -314,6 +317,107 @@ public class UncertaintyConsistencyTest {
 
                         }));
 
+    }
+
+    @Test
+    void changeUncertaintyEffectTest(@TempDir Path tempDir) {
+
+        VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
+        // Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository
+        UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
+
+        // Add a BrakeDisk that in turn (by reactions) creates a Circle
+        UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 120);
+
+        // Add two uncertainties to the brake disk
+        CommittableView brakeAndUncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
+                List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
+                .withChangeDerivingTrait();
+        modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
+            BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+                    .stream()
+                    .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
+                    .filter(d -> d.getDiameterInMM() == 120)
+                    .findFirst().orElseThrow();
+
+            UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+                    .createUncertaintyLocation(List.of(brakeDisk));
+            uncertaintyLocation.setSpecification("FromDisk");
+            Uncertainty uncertainty = UncertaintyTestFactory.createUncertainty(Optional.of(uncertaintyLocation));
+            Effect effect = UncertaintyTestFactory.createEffect();
+            effect.setSpecification("effectOne");
+            effect.setRepresentation(StructuralEffectTypeRepresentation.CONTINOUS);
+            effect.setStochasticity(StochasticityEffectType.NON_DETERMINISTIC);
+            uncertainty.setEffect(effect);
+
+            v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+                    .getUncertainties().add(uncertainty);
+
+            // Trigger propagation
+            brakeDisk.setSpecificationType(EcoreUtil.generateUUID());
+
+        });
+
+        // Assert that two uncertainties now exist both having the same effect
+        Assertions.assertTrue(
+                assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
+                        (View v) -> {
+                            List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                                    .iterator().next().getUncertainties();
+                            return uncertainties.size() == 2 && uncertainties.stream()
+                                    .allMatch(u -> u.getEffect().getSpecification().equals("effectOne")
+                                            && u.getEffect()
+                                                    .getRepresentation() == StructuralEffectTypeRepresentation.CONTINOUS
+                                            && u.getEffect()
+                                                    .getStochasticity() == StochasticityEffectType.NON_DETERMINISTIC);
+
+                        }));
+        // Change specification of the effect to "effectTwo"
+        modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait(), (CommittableView v) -> {
+                    List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                            .iterator().next().getUncertainties();
+                    Uncertainty firstUncertainty = uncertainties.get(0);
+                    Effect effect = firstUncertainty.getEffect();
+                    effect.setSpecification("effectTwo");
+
+                });
+
+        // Change the representation of the effect to DISCRETE
+        modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait(), (CommittableView v) -> {
+                    List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                            .iterator().next().getUncertainties();
+                    Uncertainty firstUncertainty = uncertainties.get(0);
+                    Effect effect = firstUncertainty.getEffect();
+                    effect.setRepresentation(StructuralEffectTypeRepresentation.DISCRETE);
+
+                });
+        // Change the stochasticity of the effect to PROBABILISTIC
+        modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait(), (CommittableView v) -> {
+                    List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                            .iterator().next().getUncertainties();
+                    Uncertainty firstUncertainty = uncertainties.get(0);
+                    Effect effect = firstUncertainty.getEffect();
+                    effect.setStochasticity(StochasticityEffectType.PROBABILISTIC);
+
+                });
+        // Assert that both uncertainties now have the effect "effectTwo" with
+        // representation DISCRETE and stochasticity PROBABILISTIC
+        Assertions.assertTrue(
+                assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
+                        (View v) -> {
+                            List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                                    .iterator().next().getUncertainties();
+                            return uncertainties.size() == 2 && uncertainties.stream()
+                                    .allMatch(u -> u.getEffect().getSpecification().equals("effectTwo")
+                                            && u.getEffect()
+                                                    .getRepresentation() == StructuralEffectTypeRepresentation.DISCRETE
+                                            && u.getEffect()
+                                                    .getStochasticity() == StochasticityEffectType.PROBABILISTIC);
+
+                        }));
     }
 
     // These functions are only for convience, as they make the code a bit better

@@ -245,11 +245,6 @@ routine updateUncertainties(uncertaintyModel::Uncertainty sourceUncertainty){
         val uncertaintiesList = retrieve many uncertaintyModel::Uncertainty corresponding to sourceUncertainty
     }
     update {
-        // If there are no corresponding uncertainties: deletion of sourceUncertainty is allowed and no further action is needed
-        if (uncertaintiesList.isEmpty()) {
-            return;
-        } 
-
         // Update all corresponding uncertainties with the new values from the sourceUncertainty
         for (correspondingUncertainty : uncertaintiesList) {
             // Other values have not changed but can be safely overwritten as they should be the same (CPR)
@@ -272,12 +267,6 @@ routine patternTypeChangedRoutine(uncertaintyModel::Pattern pattern, uncertainty
         val uncertaintiesList = retrieve many uncertaintyModel::Uncertainty corresponding to sourceUncertainty
     }
     update {
-
-        // If there are no corresponding uncertainties: deletion of sourceUncertainty is allowed and no further action is needed
-        if (uncertaintiesList.isEmpty()) {
-            return;
-        } 
-
         // Update all corresponding uncertainties with the new values from the sourceUncertainty
         for (correspondingUncertainty : uncertaintiesList) {
             correspondingUncertainty.getPattern().setPatternType(sourceUncertainty.getPattern().getPatternType());
@@ -304,6 +293,35 @@ routine perspectiveChangedRoutine(uncertaintyModel::UncertaintyPerspective persp
         for (correspondingUncertainty : uncertaintiesList) {
             correspondingUncertainty.getPerspective().setPerspective(sourceUncertainty.getPerspective().getPerspective());
             correspondingUncertainty.getPerspective().setSpecification(sourceUncertainty.getPerspective().getSpecification());
+        }
+    }
+}
+
+reaction UncertaintyEffectSpecificationChanged {
+    after attribute replaced at uncertaintyModel::Effect[specification] 
+    call effectChangedRoutine(affectedEObject, affectedEObject.eContainer() as Uncertainty)
+}
+
+reaction UncertaintyEffectRepresentationChanged {
+    after attribute replaced at uncertaintyModel::Effect[representation] 
+    call effectChangedRoutine(affectedEObject, affectedEObject.eContainer() as Uncertainty)
+}
+
+reaction UncertaintyEffectStochasticityChanged {
+    after attribute replaced at uncertaintyModel::Effect[stochasticity] 
+    call effectChangedRoutine(affectedEObject, affectedEObject.eContainer() as Uncertainty)
+}
+
+routine effectChangedRoutine(uncertaintyModel::Effect effect, uncertaintyModel::Uncertainty sourceUncertainty) {
+    match {
+        val uncertaintiesList = retrieve many uncertaintyModel::Uncertainty corresponding to sourceUncertainty
+    }
+    update {
+        // Update all corresponding uncertainties with the new values from the sourceUncertainty
+        for (correspondingUncertainty : uncertaintiesList) {
+            correspondingUncertainty.getEffect().setSpecification(sourceUncertainty.getEffect().getSpecification());
+            correspondingUncertainty.getEffect().setRepresentation(sourceUncertainty.getEffect().getRepresentation());
+            correspondingUncertainty.getEffect().setStochasticity(sourceUncertainty.getEffect().getStochasticity());
         }
     }
 }
