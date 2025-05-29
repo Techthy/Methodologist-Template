@@ -1,6 +1,5 @@
 
 import java.util.List;
-import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyLocation;
 import uncertainty.UncertaintyFactory;
@@ -34,7 +33,7 @@ routine handleBrakeDiskUncertainty(uncertaintyModel::UncertaintyLocation locatio
     
     match {
         val correspondingReferenceList = retrieve many EObject corresponding to referencedElement
-        check referencedElement instanceof BrakeDisk    
+        check referencedElement instanceof BrakeDisk
     }
 
 

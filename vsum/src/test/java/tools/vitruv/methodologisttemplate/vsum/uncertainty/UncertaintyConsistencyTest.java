@@ -1,0 +1,237 @@
+package tools.vitruv.methodologisttemplate.vsum.uncertainty;
+
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+
+import brakesystem.BrakeDisk;
+import brakesystem.Brakesystem;
+import tools.vitruv.framework.views.CommittableView;
+import tools.vitruv.framework.views.View;
+import tools.vitruv.framework.vsum.VirtualModel;
+import uncertainty.OnDeleteMode;
+import uncertainty.Pattern;
+import uncertainty.PatternType;
+import uncertainty.ReducabilityLevel;
+import uncertainty.Uncertainty;
+import uncertainty.UncertaintyAnnotationRepository;
+import uncertainty.UncertaintyKind;
+import uncertainty.UncertaintyLocation;
+import uncertainty.UncertaintyNature;
+
+public class UncertaintyConsistencyTest {
+
+    private static final Logger logger = org.slf4j.LoggerFactory
+            .getLogger(UncertaintyConsistencyTest.class);
+
+    @BeforeAll
+    static void setup() {
+        Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("*",
+                new XMIResourceFactoryImpl());
+
+    }
+
+    @Test
+    void changePrimitiveAttributesUncertaintyTest(@TempDir Path tempDir) {
+
+        VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
+        // Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository
+        UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
+
+        // Add a BrakeDisk that in turn (by reactions) creates a Circle
+        UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 120);
+
+        // Add two uncertainties to the brake disk
+        CommittableView brakeAndUncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
+                List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
+                .withChangeDerivingTrait();
+        modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
+            BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+                    .stream()
+                    .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
+                    .filter(d -> d.getDiameterInMM() == 120)
+                    .findFirst().orElseThrow();
+
+            UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+                    .createUncertaintyLocation(List.of(brakeDisk));
+            uncertaintyLocation.setSpecification("FromDisk");
+            Uncertainty uncertainty = UncertaintyTestFactory.createUncertainty(Optional.of(uncertaintyLocation));
+            uncertainty.setKind(UncertaintyKind.MEASUREMENT_UNCERTAINTY);
+            uncertainty.setReducability(ReducabilityLevel.FULLY_REDUCABLE);
+            uncertainty.setNature(UncertaintyNature.EPISTEMIC);
+            uncertainty.setOnDelete(OnDeleteMode.NO_ACTION);
+
+            v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+                    .getUncertainties().add(uncertainty);
+
+            // Trigger propagation
+            brakeDisk.setSpecificationType(EcoreUtil.generateUUID());
+
+        });
+
+        // Assert that two uncertainties now exist both having the same primitive
+        // attributes
+        Assertions.assertTrue(
+                assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
+                        (View v) -> {
+                            List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                                    .iterator().next().getUncertainties();
+                            return uncertainties.size() == 2 && uncertainties.stream()
+                                    .allMatch(u -> u.getKind() == UncertaintyKind.MEASUREMENT_UNCERTAINTY
+                                            && u.getReducability() == ReducabilityLevel.FULLY_REDUCABLE
+                                            && u.getNature() == UncertaintyNature.EPISTEMIC
+                                            && u.getOnDelete() == OnDeleteMode.NO_ACTION);
+
+                        }));
+
+        // Change the primitive attributes one uncertainty
+        modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait(), (CommittableView v) -> {
+                    List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                            .iterator().next().getUncertainties();
+                    Uncertainty firstUncertainty = uncertainties.get(0);
+                    firstUncertainty.setKind(UncertaintyKind.BELIEF_UNCERTAINTY);
+
+                });
+
+        modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait(), (CommittableView v) -> {
+                    List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                            .iterator().next().getUncertainties();
+                    Uncertainty firstUncertainty = uncertainties.get(0);
+                    firstUncertainty.setReducability(ReducabilityLevel.IRREDUCIBLE);
+
+                });
+
+        modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait(), (CommittableView v) -> {
+                    List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                            .iterator().next().getUncertainties();
+                    Uncertainty firstUncertainty = uncertainties.get(0);
+                    firstUncertainty.setNature(UncertaintyNature.ALEATORY);
+
+                });
+
+        modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait(), (CommittableView v) -> {
+                    List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                            .iterator().next().getUncertainties();
+                    Uncertainty firstUncertainty = uncertainties.get(0);
+                    firstUncertainty.setOnDelete(OnDeleteMode.RESTRICT);
+
+                });
+
+        // Assert that both uncertainties now have the changed primitive attributes
+        Assertions.assertTrue(
+                assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
+                        (View v) -> {
+                            List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                                    .iterator().next().getUncertainties();
+                            logger.info("Uncertainties: {}", uncertainties);
+                            // LOG the primitive attributes of the uncertainties
+                            uncertainties
+                                    .forEach(u -> logger.info("Kind: {}, Reducability: {}, Nature: {}, OnDelete: {}",
+                                            u.getKind(), u.getReducability(), u.getNature(), u.getOnDelete()));
+                            return uncertainties.size() == 2 && uncertainties.stream()
+                                    .allMatch(u -> u.getKind() == UncertaintyKind.BELIEF_UNCERTAINTY
+                                            && u.getReducability() == ReducabilityLevel.IRREDUCIBLE
+                                            && u.getNature() == UncertaintyNature.ALEATORY
+                                            && u.getOnDelete() == OnDeleteMode.RESTRICT);
+
+                        }));
+    }
+
+    @Test
+    void changePatternTest(@TempDir Path tempDir) {
+        VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
+        // Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository
+        UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
+
+        // Add a BrakeDisk that in turn (by reactions) creates a Circle
+        UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 120);
+
+        // Add two uncertainties to the brake disk
+        CommittableView brakeAndUncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
+                List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
+                .withChangeDerivingTrait();
+        modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
+            BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+                    .stream()
+                    .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
+                    .filter(d -> d.getDiameterInMM() == 120)
+                    .findFirst().orElseThrow();
+
+            UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+                    .createUncertaintyLocation(List.of(brakeDisk));
+            uncertaintyLocation.setSpecification("FromDisk");
+            Uncertainty uncertainty = UncertaintyTestFactory.createUncertainty(Optional.of(uncertaintyLocation));
+            Pattern pattern = UncertaintyTestFactory.createPattern();
+            pattern.setPatternType(PatternType.PERSISTENT);
+
+            v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+                    .getUncertainties().add(uncertainty);
+
+            // Trigger propagation
+            brakeDisk.setSpecificationType(EcoreUtil.generateUUID());
+
+        });
+
+        // Assert that two uncertainties now exist both having the Pattern Type
+        // PERSISTENT
+        Assertions.assertTrue(
+                assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
+                        (View v) -> {
+                            List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                                    .iterator().next().getUncertainties();
+                            return uncertainties.size() == 2 && uncertainties.stream()
+                                    .allMatch(u -> u.getPattern().getPatternType() == PatternType.PERSISTENT);
+
+                        }));
+
+        // Change the pattern of the first uncertainty to TRANSIENT
+
+        modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait(), (CommittableView v) -> {
+                    List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                            .iterator().next().getUncertainties();
+                    Uncertainty firstUncertainty = uncertainties.get(0);
+                    Pattern pattern = firstUncertainty.getPattern();
+                    pattern.setPatternType(PatternType.TRANSIENT);
+
+                });
+
+        // Assert that both uncertainties now have the Pattern Type TRANSIENT
+        Assertions.assertTrue(
+                assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
+                        (View v) -> {
+                            List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                                    .iterator().next().getUncertainties();
+                            return uncertainties.size() == 2 && uncertainties.stream()
+                                    .allMatch(u -> u.getPattern().getPatternType() == PatternType.TRANSIENT);
+
+                        }));
+
+    }
+
+    // These functions are only for convience, as they make the code a bit better
+    // readable
+    private void modifyView(CommittableView view, Consumer<CommittableView> modificationFunction) {
+        modificationFunction.accept(view);
+        view.commitChanges();
+    }
+
+    private boolean assertView(View view, Function<View, Boolean> viewAssertionFunction) {
+        return viewAssertionFunction.apply(view);
+    }
+}
