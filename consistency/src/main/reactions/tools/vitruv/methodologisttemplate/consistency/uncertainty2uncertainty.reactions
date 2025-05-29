@@ -263,11 +263,11 @@ routine updateUncertainties(uncertaintyModel::Uncertainty sourceUncertainty){
 
 reaction PatternTypeChanged {
     after attribute replaced at uncertaintyModel::Pattern[patternType] 
-    call patternTypeChangedRoutine(affectedEObject, newValue, affectedEObject.eContainer() as Uncertainty)
+    call patternTypeChangedRoutine(affectedEObject, affectedEObject.eContainer() as Uncertainty)
 }
 
 
-routine patternTypeChangedRoutine(uncertaintyModel::Pattern pattern, uncertaintyModel::PatternType newPatternType, uncertaintyModel::Uncertainty sourceUncertainty) {
+routine patternTypeChangedRoutine(uncertaintyModel::Pattern pattern, uncertaintyModel::Uncertainty sourceUncertainty) {
     match {
         val uncertaintiesList = retrieve many uncertaintyModel::Uncertainty corresponding to sourceUncertainty
     }
@@ -284,3 +284,27 @@ routine patternTypeChangedRoutine(uncertaintyModel::Pattern pattern, uncertainty
         }
     }
 }
+
+reaction UncertainyPerspectiveChanged {
+    after attribute replaced at uncertaintyModel::UncertaintyPerspective[perspective] 
+    call perspectiveChangedRoutine(affectedEObject, affectedEObject.eContainer() as Uncertainty)
+}
+
+reaction UncertaintySpecificationChanged {
+    after attribute replaced at uncertaintyModel::UncertaintyPerspective[specification] 
+    call perspectiveChangedRoutine(affectedEObject, affectedEObject.eContainer() as Uncertainty)
+}
+
+routine perspectiveChangedRoutine(uncertaintyModel::UncertaintyPerspective perspective, uncertaintyModel::Uncertainty sourceUncertainty) {
+    match {
+        val uncertaintiesList = retrieve many uncertaintyModel::Uncertainty corresponding to sourceUncertainty
+    }
+    update {
+        // Update all corresponding uncertainties with the new values from the sourceUncertainty
+        for (correspondingUncertainty : uncertaintiesList) {
+            correspondingUncertainty.getPerspective().setPerspective(sourceUncertainty.getPerspective().getPerspective());
+            correspondingUncertainty.getPerspective().setSpecification(sourceUncertainty.getPerspective().getSpecification());
+        }
+    }
+}
+

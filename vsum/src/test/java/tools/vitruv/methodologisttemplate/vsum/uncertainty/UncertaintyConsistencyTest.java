@@ -29,6 +29,8 @@ import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.UncertaintyKind;
 import uncertainty.UncertaintyLocation;
 import uncertainty.UncertaintyNature;
+import uncertainty.UncertaintyPerspective;
+import uncertainty.UncertaintyPerspectiveType;
 
 public class UncertaintyConsistencyTest {
 
@@ -219,6 +221,96 @@ public class UncertaintyConsistencyTest {
                                     .iterator().next().getUncertainties();
                             return uncertainties.size() == 2 && uncertainties.stream()
                                     .allMatch(u -> u.getPattern().getPatternType() == PatternType.TRANSIENT);
+
+                        }));
+
+    }
+
+    @Test
+    void changePerspectiveTest(@TempDir Path tempDir) {
+
+        VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
+        // Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository
+        UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
+
+        // Add a BrakeDisk that in turn (by reactions) creates a Circle
+        UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 120);
+
+        // Add two uncertainties to the brake disk
+        CommittableView brakeAndUncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
+                List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
+                .withChangeDerivingTrait();
+        modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
+            BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+                    .stream()
+                    .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
+                    .filter(d -> d.getDiameterInMM() == 120)
+                    .findFirst().orElseThrow();
+
+            UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+                    .createUncertaintyLocation(List.of(brakeDisk));
+            uncertaintyLocation.setSpecification("FromDisk");
+            Uncertainty uncertainty = UncertaintyTestFactory.createUncertainty(Optional.of(uncertaintyLocation));
+            UncertaintyPerspective perspective = UncertaintyTestFactory.createUncertaintyPerspective();
+            perspective.setPerspective(UncertaintyPerspectiveType.OBJECTIVE);
+            perspective.setSpecification("specificationOne");
+            uncertainty.setPerspective(perspective);
+
+            v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+                    .getUncertainties().add(uncertainty);
+
+            // Trigger propagation
+            brakeDisk.setSpecificationType(EcoreUtil.generateUUID());
+
+        });
+
+        // Assert that two uncertainties now exist both having the same perspective
+        Assertions.assertTrue(
+                assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
+                        (View v) -> {
+                            List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                                    .iterator().next().getUncertainties();
+                            return uncertainties.size() == 2 && uncertainties.stream()
+                                    .allMatch(u -> u.getPerspective()
+                                            .getPerspective() == UncertaintyPerspectiveType.OBJECTIVE
+                                            && u.getPerspective().getSpecification()
+                                                    .equals("specificationOne"));
+
+                        }));
+
+        // Change the perspective of the first uncertainty to SUBJECTIVE
+        modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait(), (CommittableView v) -> {
+                    List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                            .iterator().next().getUncertainties();
+                    Uncertainty firstUncertainty = uncertainties.get(0);
+                    UncertaintyPerspective perspective = firstUncertainty.getPerspective();
+                    perspective.setPerspective(UncertaintyPerspectiveType.SUBJECTIVE);
+
+                });
+
+        modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait(), (CommittableView v) -> {
+                    List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                            .iterator().next().getUncertainties();
+                    Uncertainty firstUncertainty = uncertainties.get(0);
+                    UncertaintyPerspective perspective = firstUncertainty.getPerspective();
+                    perspective.setSpecification("specificationTwo");
+
+                });
+
+        // Assert that both uncertainties now have the perspective SUBJECTIVE and the
+        // specification "specificationTwo"
+        Assertions.assertTrue(
+                assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
+                        (View v) -> {
+                            List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                                    .iterator().next().getUncertainties();
+                            return uncertainties.size() == 2 && uncertainties.stream()
+                                    .allMatch(u -> u.getPerspective()
+                                            .getPerspective() == UncertaintyPerspectiveType.SUBJECTIVE
+                                            && u.getPerspective().getSpecification()
+                                                    .equals("specificationTwo"));
 
                         }));
 
