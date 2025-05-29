@@ -2,9 +2,11 @@ package tools.vitruv.methodologisttemplate.vsum.uncertainty;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -27,6 +29,7 @@ import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.UncertaintyFactory;
 import uncertainty.UncertaintyKind;
+import uncertainty.UncertaintyLocation;
 import uncertainty.UncertaintyLocationType;
 import uncertainty.UncertaintyNature;
 
@@ -58,13 +61,18 @@ public class OnDeleteTest {
                                 List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
                                 .withChangeDerivingTrait();
                 modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
-                        var brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+                        BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
                                         .stream()
                                         .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
                                         .filter(d -> d.getDiameterInMM() == 120)
                                         .findFirst().orElseThrow();
 
-                        var uncertainty = createUncertainty("FromDisk", brakeDisk, OnDeleteMode.NO_ACTION);
+                        UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+                                        .createUncertaintyLocation(List.of(brakeDisk));
+                        uncertaintyLocation.setSpecification("FromDisk");
+                        Uncertainty uncertainty = UncertaintyTestFactory
+                                        .createUncertainty(Optional.of(uncertaintyLocation));
+                        uncertainty.setOnDelete(OnDeleteMode.NO_ACTION);
 
                         v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
                                         .getUncertainties().add(uncertainty);
@@ -120,13 +128,18 @@ public class OnDeleteTest {
                                 List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
                                 .withChangeDerivingTrait();
                 modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
-                        var brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+                        BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
                                         .stream()
                                         .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
                                         .filter(d -> d.getDiameterInMM() == 120)
                                         .findFirst().orElseThrow();
 
-                        var uncertainty = createUncertainty("FromDisk", brakeDisk, OnDeleteMode.RESTRICT);
+                        UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+                                        .createUncertaintyLocation(List.of(brakeDisk));
+                        uncertaintyLocation.setSpecification("FromDisk");
+                        Uncertainty uncertainty = UncertaintyTestFactory
+                                        .createUncertainty(Optional.of(uncertaintyLocation));
+                        uncertainty.setOnDelete(OnDeleteMode.RESTRICT);
 
                         v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
                                         .getUncertainties().add(uncertainty);
@@ -173,10 +186,11 @@ public class OnDeleteTest {
                                 .getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
                                 .withChangeDerivingTrait(), (CommittableView v) -> {
 
-                                        var uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+                                        EList<Uncertainty> uncertainties = v
+                                                        .getRootObjects(UncertaintyAnnotationRepository.class)
                                                         .iterator().next()
                                                         .getUncertainties();
-                                        var uncertaintyToDelete = uncertainties.stream()
+                                        Uncertainty uncertaintyToDelete = uncertainties.stream()
                                                         .filter(u -> u.getUncertaintyLocation()
                                                                         .getReferencedComponents().stream()
                                                                         .anyMatch(c -> c instanceof BrakeDisk))
@@ -193,24 +207,6 @@ public class OnDeleteTest {
                                                         .getBrakeComponents().get(0)
                                                         .setSpecificationType(EcoreUtil.generateUUID());
                                 });
-        }
-
-        private Uncertainty createUncertainty(String uncertaintyLocationSpecification, EObject object,
-                        OnDeleteMode onDeleteMode) {
-                var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
-                uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
-                uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
-                uncertaintyLocation.getReferencedComponents().add(object);
-
-                var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
-                uncertainty.setUncertaintyLocation(uncertaintyLocation);
-                uncertainty.setKind(UncertaintyKind.BELIEF_UNCERTAINTY);
-                uncertainty.setReducability(ReducabilityLevel.UNKNOWN);
-                uncertainty.setNature(UncertaintyNature.ALEATORY);
-                uncertainty.setSetManually(true);
-                uncertainty.setId(EcoreUtil.generateUUID());
-                uncertainty.setOnDelete(onDeleteMode);
-                return uncertainty;
         }
 
         // These functions are only for convience, as they make the code a bit better

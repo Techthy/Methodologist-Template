@@ -2,10 +2,11 @@ package tools.vitruv.methodologisttemplate.vsum.uncertainty;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
@@ -22,13 +23,10 @@ import cad.CADRepository;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.vsum.VirtualModel;
-import uncertainty.ReducabilityLevel;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
-import uncertainty.UncertaintyFactory;
 import uncertainty.UncertaintyKind;
-import uncertainty.UncertaintyLocationType;
-import uncertainty.UncertaintyNature;
+import uncertainty.UncertaintyLocation;
 
 public class AddAndRemoveUncertaintyTest {
 
@@ -67,14 +65,23 @@ public class AddAndRemoveUncertaintyTest {
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
 				.withChangeDerivingTrait();
 		modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
-			var brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+			BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
 					.stream()
 					.filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
 					.filter(d -> d.getDiameterInMM() == 120)
 					.findFirst().orElseThrow();
-
-			var firstUncertainty = createUncertainty("FromDisk1", brakeDisk, UncertaintyKind.MEASUREMENT_UNCERTAINTY);
-			var secondUncertainty = createUncertainty("FromDisk2", brakeDisk, UncertaintyKind.OCCURENCE_UNCERTAINTY);
+			UncertaintyLocation firstLocation = UncertaintyTestFactory.createUncertaintyLocation(
+					List.of(brakeDisk));
+			firstLocation.setSpecification("FromDisk1");
+			UncertaintyLocation secondLocation = UncertaintyTestFactory.createUncertaintyLocation(
+					List.of(brakeDisk));
+			secondLocation.setSpecification("FromDisk2");
+			Uncertainty firstUncertainty = UncertaintyTestFactory.createUncertainty(
+					Optional.of(firstLocation));
+			firstUncertainty.setKind(UncertaintyKind.MEASUREMENT_UNCERTAINTY);
+			Uncertainty secondUncertainty = UncertaintyTestFactory.createUncertainty(
+					Optional.of(secondLocation));
+			secondUncertainty.setKind(UncertaintyKind.OCCURENCE_UNCERTAINTY);
 
 			// Trigger propagation
 			brakeDisk.setSpecificationType("propagationTest");
@@ -91,8 +98,8 @@ public class AddAndRemoveUncertaintyTest {
 		Assertions.assertTrue(
 				assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
 						(View v) -> {
-							var brakeDiskUncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
-							var circleUncertainties = UncertaintyTestUtil.getCircleUncertainties(v);
+							List<Uncertainty> brakeDiskUncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
+							List<Uncertainty> circleUncertainties = UncertaintyTestUtil.getCircleUncertainties(v);
 							logger.debug("brakeDiskUncertainties: " + brakeDiskUncertainties);
 							logger.debug("circleUncertainties: " + circleUncertainties);
 
@@ -111,8 +118,8 @@ public class AddAndRemoveUncertaintyTest {
 		Assertions.assertTrue(assertView(UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class, CADRepository.class)),
 				(View v) -> {
-					var brakeDiskUncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
-					var circleUncertainties = UncertaintyTestUtil.getCircleUncertainties(v);
+					List<Uncertainty> brakeDiskUncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
+					List<Uncertainty> circleUncertainties = UncertaintyTestUtil.getCircleUncertainties(v);
 
 					long brakeComponentCount = v.getRootObjects(Brakesystem.class).iterator().next()
 							.getBrakeComponents().size();
@@ -151,32 +158,15 @@ public class AddAndRemoveUncertaintyTest {
 
 	}
 
-	private Uncertainty createUncertainty(String uncertaintyLocationSpecification, EObject object,
-			UncertaintyKind kind) {
-		var uncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
-		uncertaintyLocation.setLocation(UncertaintyLocationType.OUTCOME);
-		uncertaintyLocation.setSpecification(uncertaintyLocationSpecification);
-		uncertaintyLocation.getReferencedComponents().add(object);
-
-		var uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
-		uncertainty.setUncertaintyLocation(uncertaintyLocation);
-		uncertainty.setKind(kind);
-		uncertainty.setReducability(ReducabilityLevel.UNKNOWN);
-		uncertainty.setNature(UncertaintyNature.ALEATORY);
-		uncertainty.setSetManually(true);
-		uncertainty.setId(EcoreUtil.generateUUID());
-		return uncertainty;
-	}
-
 	private void deleteBrakeDiskUncertainty(VirtualModel vsum) {
 		modifyView(UncertaintyTestUtil
 				.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
 				.withChangeDerivingTrait(), (CommittableView v) -> {
 
-					var uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+					EList<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next()
 							.getUncertainties();
-					var uncertaintyToDelete = uncertainties.stream()
+					Uncertainty uncertaintyToDelete = uncertainties.stream()
 							.filter(u -> u.getUncertaintyLocation()
 									.getReferencedComponents().stream()
 									.anyMatch(c -> c instanceof BrakeDisk))
