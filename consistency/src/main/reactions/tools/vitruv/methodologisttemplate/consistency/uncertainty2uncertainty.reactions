@@ -73,7 +73,7 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
                 val newUncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
                 newUncertaintyLocation.getReferencedComponents.add(correspondingElement);
                 newUncertaintyLocation.setLocation(location.getLocation());
-                newUncertaintyLocation.setSpecification(location.getSpecification() + EcoreUtil.generateUUID());
+                newUncertaintyLocation.setSpecification(location.getSpecification());
                 
                 val newEffect = UncertaintyFactory.eINSTANCE.createEffect();
                 newEffect.setSpecification(sourceEffect.getSpecification());
@@ -121,7 +121,7 @@ routine createCorrespondingUncertaintyReference(uncertaintyModel::UncertaintyLoc
                         val newUncertaintyLocation = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
                         newUncertaintyLocation.getReferencedComponents.add(correspondingElement);
                         newUncertaintyLocation.setLocation(location.getLocation());
-                        newUncertaintyLocation.setSpecification(location.getSpecification() + EcoreUtil.generateUUID());
+                        newUncertaintyLocation.setSpecification(location.getSpecification());
                         
                         val newEffect = UncertaintyFactory.eINSTANCE.createEffect();
                         newEffect.setSpecification(sourceEffect.getSpecification());
@@ -325,4 +325,29 @@ routine effectChangedRoutine(uncertaintyModel::Effect effect, uncertaintyModel::
         }
     }
 }
+
+reaction UncertaintyLocationSpecificationChanged {
+    after attribute replaced at uncertaintyModel::UncertaintyLocation[specification] 
+    call locationChangedRoutine(affectedEObject, affectedEObject.eContainer() as Uncertainty)
+}
+
+reaction UncertaintyLocationLocationChanged {
+    after attribute replaced at uncertaintyModel::UncertaintyLocation[location] 
+    call locationChangedRoutine(affectedEObject, affectedEObject.eContainer() as Uncertainty)
+}
+
+routine locationChangedRoutine(uncertaintyModel::UncertaintyLocation location, uncertaintyModel::Uncertainty sourceUncertainty) {
+    match {
+        val uncertaintiesList = retrieve many uncertaintyModel::Uncertainty corresponding to sourceUncertainty
+    }
+    update {
+        // Update all corresponding uncertainties with the new values from the sourceUncertainty
+        for (correspondingUncertainty : uncertaintiesList) {
+            correspondingUncertainty.getUncertaintyLocation().setSpecification(location.getSpecification());
+            correspondingUncertainty.getUncertaintyLocation().setLocation(location.getLocation());
+        }
+    }
+}
+
+
 
