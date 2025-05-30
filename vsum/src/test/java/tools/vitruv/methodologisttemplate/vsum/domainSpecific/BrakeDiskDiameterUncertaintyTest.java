@@ -1,4 +1,4 @@
-package tools.vitruv.methodologisttemplate.vsum.brakeDiskUncertainty;
+package tools.vitruv.methodologisttemplate.vsum.domainSpecific;
 
 import java.nio.file.Path;
 import java.util.List;
