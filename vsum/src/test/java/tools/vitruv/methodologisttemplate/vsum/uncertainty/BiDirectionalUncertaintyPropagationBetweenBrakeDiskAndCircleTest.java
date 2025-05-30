@@ -45,7 +45,7 @@ public class BiDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleTest {
 	// Assert that both uncertainties are propagated and created a corresponding
 	// uncertainty
 	@Test
-	void biDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleSameUncertaintyNotAutomaticallyCreated(
+	void biDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleTest(
 			@TempDir Path tempDir) {
 		VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
 		// Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository
