@@ -1,0 +1,18 @@
+Name,File,Beschreibung,Stichwörter
+changeBrakeDiskDiameterWithUncertainty,BrakeDiskDiameterUncertaintyTest.java,test propagation of stochastically annotated brake disc (change diameter of circle to expectation),domain specific propagation
+addUncertaintyAndRemove,AddAndRemoveUncertaintyTest.java,"adds two uncertainties, by propagation two more are created. Then they are deleted (expectation is that the corresponding ones are deleted also)","uncertainty removal, DISABLED"
+addAndRemoveUncertaintyWithManualEdit,AddAndRemoveUncertaintyWithManuallyTest.java,"add uncertainties, edit manually, (bot setManually true now), delete one, expect other one not to be deleted","setManually, DISABLED"
+biDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleSameUncertaintyNotAutomaticallyCreated,BiDirectionalSameUncertaintyNotCreated.java,"add Uncertainty to Brake Disk, Add (parameter wise) same uncertainty to circle, expect that second one is not propagated as it already exsists",same uncertainty only once
+biDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleSameUncertaintyNotAutomaticallyCreated,BiDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleTest.java,"add Uncertainty to Circle, propagates, add different Uncertainty to Brake Disk, propagates",untertainty propagation
+AddAndRemoveUncertaintyWithOnDeleteNoActionTest,OnDeleteTest.java,"add Uncertainty that propagates, when deleted corresponding uncertainties are kept",OnDelete
+AddAndRemoveUncertaintyWithOnDeleteRestrictTest,OnDeleteTest.java,"add Uncertainty that propagates, when deleted it cannot be deleted as corresponding uncertainties exist",OnDelete
+createUncertaintyManuallyPropagateToSingleCorrespondingEntity,PropagateToSingeCorrespondingEntityTest.java,simple propagation test of uncertainty,Uncertainty Prop
+PropagateToSingleCorrespondingEntityNoOtherEntitiesAffectedTest,PropagateToSingleCorrespondingEntityNoOtherEntitiesAffectedTest.java,propagation test that makes sure only the specified entites of the uncertaintyLocation are affected by the uncertainty,consistency
+changePrimitiveAttributesUncertaintyTest,UncertaintyConsistencyTest.java,keep primitve uncertainty attributes consistent,consistency
+changePatternTest,UncertaintyConsistencyTest.java,keep pattern of uncertainty consistent,consistency
+changePerspectiveTest,UncertaintyConsistencyTest.java,keep perspective of uncertainty consistent,consistency
+changeUncertaintyEffectTest,UncertaintyConsistencyTest.java,keep effect of uncertainty consistent,consistency
+changeLocationTest,UncertaintyConsistencyTest.java,keep Location attributes (not referenced Components) consistent,"consistency, DISABLED"
+RootObjectsInsertationAndPropagationTest,PropagationTests,make sure root Objs are created and correspond,
+insertCircleIntoCADRepositoryTest,PropagationTests,make sure Circle and Brake Disk correspond,
+insertBrakeDiscIntoBrakesystemTest,PropagationTests,make sure Circle and Brake Disk correspond,
