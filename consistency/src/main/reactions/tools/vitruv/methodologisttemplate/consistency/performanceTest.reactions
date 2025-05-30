@@ -1,0 +1,25 @@
+import brakesystem.BrakeDisk;
+
+import "http://www.example.org/brakesystem" as brakesystem
+
+reactions: brakesystem2brakesystem
+in reaction to changes in brakesystem
+execute actions in brakesystem
+
+
+
+reaction BrakeDiscInsertedIntoBrakesystem {
+    after element brakesystem::BrakeDisk inserted in brakesystem::Brakesystem[BrakeComponents]
+    call addCorrespondance(affectedEObject, newValue)
+}
+
+routine addCorrespondance(brakesystem::Brakesystem system, brakesystem::BrakeDisk disc) {
+    update {
+        for (component : system.getBrakeComponents()) {
+            if (component instanceof BrakeDisk && component != disc) {
+                addCorrespondenceBetween(disc, component)
+            }
+        }
+
+    }
+}

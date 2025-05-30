@@ -6,10 +6,10 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -17,58 +17,54 @@ import org.slf4j.Logger;
 
 import brakesystem.BrakeDisk;
 import brakesystem.Brakesystem;
-import brakesystem.BrakesystemFactory;
+import mir.reactions.brakesystem2brakesystem.Brakesystem2brakesystemChangePropagationSpecification;
+import mir.reactions.brakesystem2cad.Brakesystem2cadChangePropagationSpecification;
+import mir.reactions.cad2brakesystem.Cad2brakesystemChangePropagationSpecification;
+import mir.reactions.uncertainty2cad.Uncertainty2cadChangePropagationSpecification;
+import mir.reactions.uncertainty2uncertainty.Uncertainty2uncertaintyChangePropagationSpecification;
 import tools.vitruv.change.propagation.ChangePropagationMode;
 import tools.vitruv.change.testutils.TestUserInteraction;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
-import tools.vitruv.framework.vsum.VirtualModel;
 import tools.vitruv.framework.vsum.VirtualModelBuilder;
 import tools.vitruv.framework.vsum.internal.InternalVirtualModel;
 import tools.vitruv.methodologisttemplate.vsum.uncertainty.UncertaintyTestFactory;
 import tools.vitruv.methodologisttemplate.vsum.uncertainty.UncertaintyTestUtil;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
-import uncertainty.UncertaintyFactory;
 import uncertainty.UncertaintyLocation;
 
 public class uncertaintyPerformanceTest {
     private static final Logger logger = org.slf4j.LoggerFactory
             .getLogger(uncertaintyPerformanceTest.class);
 
+    private static final int NUMBER_OF_ELEMENTS_ADDED = 10;
+
     @BeforeAll
     static void setup() {
         Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("*",
                 new XMIResourceFactoryImpl());
-
+        logger.info("Running with {} elements added to the model", NUMBER_OF_ELEMENTS_ADDED);
     }
 
     @Test
-    void performanceTest(@TempDir Path tempDir) {
-        // This test should measure the performance of the uncertainty propagation
-        // and the handling of large models with uncertainties.
-        // It should create a large number of uncertainties and check the performance
-        // of the system.
-        // The actual implementation will depend on the specific requirements and
-        // setup of the test environment.
+    void performanceTestSingleNoProp(@TempDir Path tempDir) {
+        // This test should measure the performance of the uncertainty creation without
+        // change propagation.
+        // It should create a single uncertainty and check the performance of the
+        // system.
 
-        // Example: Create a large number of uncertainties and measure the time taken
-        // to propagate changes.
-
-        // Assertions can be added to check if the performance is within acceptable
-        // limits.
-
-        InternalVirtualModel vsumWithoutReactions = createDefaultVirtualModelWithoutReactions(tempDir);
+        InternalVirtualModel vsum = createDefaultVirtualModelWithoutReactions(tempDir);
         // Registers a Brakesystem and UncertaintyAnnotationRepository
-        registerRootObjects(vsumWithoutReactions, tempDir);
-        UncertaintyTestUtil.addBrakeDiscWithDiameter(vsumWithoutReactions, tempDir, 120);
+        UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
+        UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 120);
 
         long startTime = System.nanoTime();
 
-        CommittableView view1 = UncertaintyTestUtil.getDefaultView(vsumWithoutReactions,
+        CommittableView view = UncertaintyTestUtil.getDefaultView(vsum,
                 List.of(Brakesystem.class, UncertaintyAnnotationRepository.class))
                 .withChangeDerivingTrait();
-        modifyView(view1, (CommittableView v) -> {
+        modifyView(view, (CommittableView v) -> {
             BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
                     .stream()
                     .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
@@ -89,33 +85,35 @@ public class uncertaintyPerformanceTest {
 
         long endTime = System.nanoTime();
         long durationMs = (endTime - startTime) / 1_000_000;
-        logger.info("Execution time for uncertainty creation NO propagation: {} ms", durationMs);
+        logger.info("[1a] Execution time for single uncertainty creation NO propagation: {} ms", durationMs);
 
         // Assert that only one uncertainty was created
-        View assertionView1 = UncertaintyTestUtil.getDefaultView(vsumWithoutReactions,
+        View assertionView = UncertaintyTestUtil.getDefaultView(vsum,
                 List.of(UncertaintyAnnotationRepository.class));
-        assertView(assertionView1, (View v) -> {
+        Assertions.assertTrue(assertView(assertionView, (View v) -> {
             List<Uncertainty> uncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
             return uncertainties.size() == 1;
-        });
+        }));
+    }
 
-        // SECOND PART: Now we test the same scenario, but with change propagation
-        // enabled.
-        // This should lead to the creation of two uncertainties, one for the original
-        // uncertainty and one for the propagated change.
-        // We will measure the time taken for this operation as well.
-        // Create a new VirtualModel with change propagation enabled
-        // and register the same root objects again.
+    @Test
+    void performanceTestSingleWithProp(@TempDir Path tempDir) {
+        // This test should measure the performance of the uncertainty creation with
+        // change propagation.
+        // It should create a single uncertainty and check the performance of the
+        // system.
 
-        InternalVirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
+        InternalVirtualModel vsum = createDefaultVirtualModelWithReactions(tempDir);
         // Registers a Brakesystem and UncertaintyAnnotationRepository
+        UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
+        UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 120);
 
-        startTime = System.nanoTime();
+        long startTime = System.nanoTime();
 
-        CommittableView view2 = UncertaintyTestUtil.getDefaultView(vsum,
+        CommittableView view = UncertaintyTestUtil.getDefaultView(vsum,
                 List.of(Brakesystem.class, UncertaintyAnnotationRepository.class))
                 .withChangeDerivingTrait();
-        modifyView(view2, (CommittableView v) -> {
+        modifyView(view, (CommittableView v) -> {
             BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
                     .stream()
                     .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
@@ -134,46 +132,273 @@ public class uncertaintyPerformanceTest {
             brakeDisk.setSpecificationType(EcoreUtil.generateUUID());
         });
 
-        endTime = System.nanoTime();
-        durationMs = (endTime - startTime) / 1_000_000;
-        logger.info("Execution time for uncertainty creation WITH propagation: {} ms", durationMs);
+        long endTime = System.nanoTime();
+        long durationMs = (endTime - startTime) / 1_000_000;
+        logger.info("[1b] Execution time for single uncertainty creation WITH propagation: {} ms", durationMs);
 
         // Assert that two uncertainties were created
-        View assertionView2 = UncertaintyTestUtil.getDefaultView(vsum,
+        View assertionView = UncertaintyTestUtil.getDefaultView(vsum,
                 List.of(UncertaintyAnnotationRepository.class));
-        assertView(assertionView2, (View v) -> {
-            List<Uncertainty> uncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
+        Assertions.assertTrue(assertView(assertionView, (View v) -> {
+            List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+                    .getUncertainties();
             return uncertainties.size() == 2;
-        });
-
+        }));
     }
 
-    public InternalVirtualModel createDefaultVirtualModelWithoutReactions(Path projectPath) {
+    @Test
+    void performanceTestMultipleNoProp(@TempDir Path tempDir) {
+        // This test should measure the performance of the uncertainty creation without
+        // change propagation.
+        // It should create multiple uncertainties and check the performance of the
+        // system.
+
+        InternalVirtualModel vsum = createDefaultVirtualModelWithoutReactions(tempDir);
+        // Registers a Brakesystem and UncertaintyAnnotationRepository
+        UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
+        for (int i = 0; i < NUMBER_OF_ELEMENTS_ADDED; i++) {
+            UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 120 + i * 10);
+        }
+
+        long startTime = System.nanoTime();
+
+        CommittableView view = UncertaintyTestUtil.getDefaultView(vsum,
+                List.of(Brakesystem.class, UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait();
+        modifyView(view, (CommittableView v) -> {
+            BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+                    .stream()
+                    .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
+                    .filter(d -> d.getDiameterInMM() == 120)
+                    .findFirst().orElseThrow();
+
+            UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+                    .createUncertaintyLocation(List.of(brakeDisk));
+            Uncertainty uncertainty = UncertaintyTestFactory
+                    .createUncertainty(Optional.of(uncertaintyLocation));
+
+            v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+                    .getUncertainties().add(uncertainty);
+
+            // Trigger propagation
+            brakeDisk.setSpecificationType(EcoreUtil.generateUUID());
+        });
+
+        long endTime = System.nanoTime();
+        long durationMs = (endTime - startTime) / 1_000_000;
+        logger.info("[2a] Execution time for two uncertainties creation NO propagation: {} ms", durationMs);
+
+        // Assert that only one uncertainty was created
+        View assertionView = UncertaintyTestUtil.getDefaultView(vsum,
+                List.of(UncertaintyAnnotationRepository.class));
+        Assertions.assertTrue(assertView(assertionView, (View v) -> {
+            List<Uncertainty> uncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
+            return uncertainties.size() == 1;
+        }));
+    }
+
+    @Test
+    void performanceTestMultipleWithProp(@TempDir Path tempDir) {
+        // This test should measure the performance of the uncertainty creation with
+        // change propagation.
+        // It should create multiple uncertainties and check the performance of the
+        // system.
+
+        InternalVirtualModel vsum = createDefaultVirtualModelWithReactions(tempDir);
+        // Registers a Brakesystem and UncertaintyAnnotationRepository
+        UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
+        for (int i = 0; i < NUMBER_OF_ELEMENTS_ADDED; i++) {
+            UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 120 + i * 10);
+        }
+
+        long startTime = System.nanoTime();
+
+        CommittableView view = UncertaintyTestUtil.getDefaultView(vsum,
+                List.of(Brakesystem.class, UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait();
+        modifyView(view, (CommittableView v) -> {
+            BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+                    .stream()
+                    .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
+                    .filter(d -> d.getDiameterInMM() == 120)
+                    .findFirst().orElseThrow();
+
+            UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+                    .createUncertaintyLocation(List.of(brakeDisk));
+            Uncertainty uncertainty = UncertaintyTestFactory
+                    .createUncertainty(Optional.of(uncertaintyLocation));
+
+            v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+                    .getUncertainties().add(uncertainty);
+
+            // Trigger propagation
+            brakeDisk.setSpecificationType(EcoreUtil.generateUUID());
+        });
+
+        long endTime = System.nanoTime();
+        long durationMs = (endTime - startTime) / 1_000_000;
+        logger.info("[2b] Execution time for two uncertainties components creation WITH propagation: {} ms",
+                durationMs);
+
+        // Assert that two uncertainties were created
+        View assertionView = UncertaintyTestUtil.getDefaultView(vsum,
+                List.of(UncertaintyAnnotationRepository.class));
+        Assertions.assertTrue(assertView(assertionView, (View v) -> {
+            List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+                    .getUncertainties();
+            return uncertainties.size() == 2;
+        }));
+    }
+
+    @Test
+    void performanceTestMultipleCorrespondingNoProp(@TempDir Path tempDir) {
+        // This test should measure the performance of the uncertainty creation without
+        // change propagation.
+        // It should create multiple uncertainties and check the performance of the
+        // system.
+
+        InternalVirtualModel vsum = createDefaultVirtualModelWithoutReactions(tempDir);
+        // Registers a Brakesystem and UncertaintyAnnotationRepository
+        UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
+        for (int i = 0; i < NUMBER_OF_ELEMENTS_ADDED; i++) {
+            UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 120 + i * 10);
+        }
+
+        long startTime = System.nanoTime();
+
+        CommittableView view = UncertaintyTestUtil.getDefaultView(vsum,
+                List.of(Brakesystem.class, UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait();
+        modifyView(view, (CommittableView v) -> {
+            BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+                    .stream()
+                    .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
+                    .filter(d -> d.getDiameterInMM() == 120)
+                    .findFirst().orElseThrow();
+
+            UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+                    .createUncertaintyLocation(List.of(brakeDisk));
+            Uncertainty uncertainty = UncertaintyTestFactory
+                    .createUncertainty(Optional.of(uncertaintyLocation));
+
+            v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+                    .getUncertainties().add(uncertainty);
+
+            // Trigger propagation
+            brakeDisk.setSpecificationType(EcoreUtil.generateUUID());
+        });
+
+        long endTime = System.nanoTime();
+        long durationMs = (endTime - startTime) / 1_000_000;
+        logger.info("[3a] Execution time for one uncertainty creation NO propagation: {} ms", durationMs);
+
+        // Assert that only one uncertainty was created
+        View assertionView = UncertaintyTestUtil.getDefaultView(vsum,
+                List.of(UncertaintyAnnotationRepository.class));
+        Assertions.assertTrue(assertView(assertionView, (View v) -> {
+            List<Uncertainty> uncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
+            return uncertainties.size() == 1;
+        }));
+    }
+
+    @Test
+    void performanceTestMultipleCorrespondingWithProp(@TempDir Path tempDir) {
+        // This test should measure the performance of the uncertainty creation with
+        // change propagation.
+        // It should create multiple uncertainties and check the performance of the
+        // system.
+
+        InternalVirtualModel vsum = createDefaultVirtualModelWithReactionsWithTestReactions(tempDir);
+        // Registers a Brakesystem and UncertaintyAnnotationRepository
+        UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
+        for (int i = 0; i < NUMBER_OF_ELEMENTS_ADDED; i++) {
+            UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 120 + i * 10);
+        }
+
+        long startTime = System.nanoTime();
+
+        CommittableView view = UncertaintyTestUtil.getDefaultView(vsum,
+                List.of(Brakesystem.class, UncertaintyAnnotationRepository.class))
+                .withChangeDerivingTrait();
+        modifyView(view, (CommittableView v) -> {
+            BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+                    .stream()
+                    .filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
+                    .filter(d -> d.getDiameterInMM() == 120)
+                    .findFirst().orElseThrow();
+
+            UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+                    .createUncertaintyLocation(List.of(brakeDisk));
+            Uncertainty uncertainty = UncertaintyTestFactory
+                    .createUncertainty(Optional.of(uncertaintyLocation));
+
+            v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+                    .getUncertainties().add(uncertainty);
+
+            // Trigger propagation
+            brakeDisk.setSpecificationType(EcoreUtil.generateUUID());
+        });
+
+        long endTime = System.nanoTime();
+        long durationMs = (endTime - startTime) / 1_000_000;
+        logger.info("[3b] Execution time for {} uncertainty creation WITH propagation: {} ms",
+                NUMBER_OF_ELEMENTS_ADDED * 2, durationMs);
+
+        // Assert that two uncertainties were created
+        View assertionView = UncertaintyTestUtil.getDefaultView(vsum,
+                List.of(UncertaintyAnnotationRepository.class));
+        Assertions.assertTrue(assertView(assertionView, (View v) -> {
+            List<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+                    .getUncertainties();
+            return uncertainties.size() == NUMBER_OF_ELEMENTS_ADDED * 2; // NUMBER_OF_ELEMENTS_ADDED uncertainties from
+                                                                         // the brake disks, each with a propagated
+            // uncertainty
+        }));
+    }
+
+    private InternalVirtualModel createDefaultVirtualModelWithoutReactions(Path projectPath) {
         InternalVirtualModel model = new VirtualModelBuilder()
                 .withStorageFolder(projectPath)
                 .withUserInteractorForResultProvider(
                         new TestUserInteraction.ResultProvider(new TestUserInteraction()))
+                // Add propagation rules for brakesystem and cad, but not for
+                // uncertainty, to be fair and models are comparable
+                .withChangePropagationSpecification(new Brakesystem2cadChangePropagationSpecification())
+                .withChangePropagationSpecification(new Cad2brakesystemChangePropagationSpecification())
                 .buildAndInitialize();
         model.setChangePropagationMode(ChangePropagationMode.TRANSITIVE_CYCLIC);
         return model;
     }
 
-    public void registerRootObjects(VirtualModel virtualModel, Path filePath) {
-        CommittableView view = UncertaintyTestUtil.getDefaultView(virtualModel,
-                List.of(Brakesystem.class, UncertaintyAnnotationRepository.class))
-                .withChangeDerivingTrait();
-        modifyView(view, (CommittableView v) -> {
-            v.registerRoot(
-                    UncertaintyFactory.eINSTANCE
-                            .createUncertaintyAnnotationRepository(),
-                    org.eclipse.emf.common.util.URI
-                            .createFileURI(filePath.toString() + "/uncertainty.model"));
+    private InternalVirtualModel createDefaultVirtualModelWithReactions(Path projectPath) {
+        InternalVirtualModel model = new VirtualModelBuilder()
+                .withStorageFolder(projectPath)
+                .withUserInteractorForResultProvider(
+                        new TestUserInteraction.ResultProvider(new TestUserInteraction()))
+                .withChangePropagationSpecification(new Brakesystem2cadChangePropagationSpecification())
+                .withChangePropagationSpecification(
+                        new Uncertainty2uncertaintyChangePropagationSpecification())
+                .withChangePropagationSpecification(new Cad2brakesystemChangePropagationSpecification())
+                .withChangePropagationSpecification(new Uncertainty2cadChangePropagationSpecification())
+                .buildAndInitialize();
+        model.setChangePropagationMode(ChangePropagationMode.TRANSITIVE_CYCLIC);
+        return model;
+    }
 
-            v.registerRoot(
-                    BrakesystemFactory.eINSTANCE.createBrakesystem(),
-                    URI.createFileURI(filePath.toString() + "/brakesystem.model"));
-        });
-
+    private InternalVirtualModel createDefaultVirtualModelWithReactionsWithTestReactions(Path projectPath) {
+        InternalVirtualModel model = new VirtualModelBuilder()
+                .withStorageFolder(projectPath)
+                .withUserInteractorForResultProvider(
+                        new TestUserInteraction.ResultProvider(new TestUserInteraction()))
+                .withChangePropagationSpecification(new Brakesystem2cadChangePropagationSpecification())
+                .withChangePropagationSpecification(
+                        new Uncertainty2uncertaintyChangePropagationSpecification())
+                .withChangePropagationSpecification(new Cad2brakesystemChangePropagationSpecification())
+                .withChangePropagationSpecification(new Uncertainty2cadChangePropagationSpecification())
+                .withChangePropagationSpecification(new Brakesystem2brakesystemChangePropagationSpecification())
+                .buildAndInitialize();
+        model.setChangePropagationMode(ChangePropagationMode.TRANSITIVE_CYCLIC);
+        return model;
     }
 
     // These functions are only for convience, as they make the code a bit better
