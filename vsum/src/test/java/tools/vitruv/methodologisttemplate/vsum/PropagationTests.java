@@ -42,7 +42,7 @@ public class PropagationTests {
 	}
 
 	@Test
-	void RootObjectsInsertationAndPropagationTest(@TempDir Path tempDir) {
+	void RootObjectsInsertedAndPropagated(@TempDir Path tempDir) {
 		VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
 		UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
 
@@ -59,7 +59,7 @@ public class PropagationTests {
 	}
 
 	@Test
-	void insertCircleIntoCADRepositoryTest(@TempDir Path tempDir) {
+	void insertCylinderIntoCADRepositoryTest(@TempDir Path tempDir) {
 		VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
 		UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
 
