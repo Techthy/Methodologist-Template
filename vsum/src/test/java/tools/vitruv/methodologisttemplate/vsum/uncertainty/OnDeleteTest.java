@@ -7,7 +7,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
@@ -24,14 +23,9 @@ import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.vsum.VirtualModel;
 import uncertainty.OnDeleteMode;
-import uncertainty.ReducabilityLevel;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
-import uncertainty.UncertaintyFactory;
-import uncertainty.UncertaintyKind;
 import uncertainty.UncertaintyLocation;
-import uncertainty.UncertaintyLocationType;
-import uncertainty.UncertaintyNature;
 
 public class OnDeleteTest {
 
@@ -45,9 +39,18 @@ public class OnDeleteTest {
 
         }
 
+        // Plan of the test:
+        // BrakeDisk and Circle are added to the model
+        // Uncertainty is added to BrakeDisk with OnDeleteMode.NO_ACTION
+        // This should propagate to the Circle
+        // BrakeDisk uncertainty is deleted
+        // Since the OnDeleteMode is NO_ACTION, the Circle uncertainty should
+        // still exist
+
         @Disabled
         @Test
-        void AddAndRemoveUncertaintyWithOnDeleteNoActionTest(@TempDir Path tempDir) {
+        // AddAndRemoveUncertaintyWithOnDeleteNoActionTest
+        void onDeleteNoActionTest(@TempDir Path tempDir) {
                 logger.info("Starting AddAndRemoveUncertaintyWithOnDeleteNoActionTest");
                 VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
                 // Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository
@@ -112,9 +115,17 @@ public class OnDeleteTest {
 
         }
 
+        // Plan of the test:
+        // BrakeDisk and Circle are added to the model
+        // Uncertainty is added to BrakeDisk with OnDeleteMode.RESTRICT
+        // This should propagate to the Circle
+        // BrakeDisk uncertainty is deleted
+        // Since the OnDeleteMode is RESTRICT both uncertainties should still exist
+
         @Disabled
         @Test
-        void AddAndRemoveUncertaintyWithOnDeleteRestrictTest(@TempDir Path tempDir) {
+        // AddAndRemoveUncertaintyWithOnDeleteRestrictTest
+        void onDeleteRestrictTest(@TempDir Path tempDir) {
                 logger.info("Starting AddAndRemoveUncertaintyWithOnDeleteRestrictTest");
                 VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
                 // Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository

@@ -44,7 +44,7 @@ public class BrakeDiskDiameterUncertaintyTest {
 	}
 
 	@Test
-	void changeBrakeDiskDiameterWithUncertainty(@TempDir Path tempDir) {
+	void updateBrakeDiskDiameterWithUncetaintyTest(@TempDir Path tempDir) {
 		VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
 		UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
 

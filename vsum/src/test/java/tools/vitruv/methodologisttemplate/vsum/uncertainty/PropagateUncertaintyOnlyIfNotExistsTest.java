@@ -3,11 +3,11 @@ package tools.vitruv.methodologisttemplate.vsum.uncertainty;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,12 +24,11 @@ import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.vsum.VirtualModel;
 import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
-import uncertainty.UncertaintyKind;
 import uncertainty.UncertaintyLocation;
 
-public class BiDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleTest {
+public class PropagateUncertaintyOnlyIfNotExistsTest {
 	private static final Logger logger = org.slf4j.LoggerFactory
-			.getLogger(BiDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleTest.class);
+			.getLogger(PropagateUncertaintyOnlyIfNotExistsTest.class);
 
 	@BeforeAll
 	static void setup() {
@@ -41,14 +40,16 @@ public class BiDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleTest {
 	// Plan of the test:
 	// Add brake disk and circle
 	// Add uncertainty to the circle this should propagate to the brake disk
-	// Add uncertainty to the brake disk this should propagate to the circle
+	// Add (property wise) SAME uncertainty to the brake disk this should NOT
+	// propagate to the circle
 	// Assert that both uncertainties are propagated and created a corresponding
 	// uncertainty
+
 	@Test
-	void biDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleTest(
+	// biDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleSameUncertaintyNotAutomaticallyCreated
+	void propagateUncertaintyOnlyIfNotExistsTest(
 			@TempDir Path tempDir) {
 		VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
-		// Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository
 		UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
 
 		// Add BrakeDisk
@@ -67,21 +68,20 @@ public class BiDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleTest {
 			UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory.createUncertaintyLocation(List.of(circle));
 			uncertaintyLocation.setSpecification("FromCircle");
 			Uncertainty uncertainty = UncertaintyTestFactory.createUncertainty(Optional.of(uncertaintyLocation));
-			uncertainty.setKind(UncertaintyKind.OCCURENCE_UNCERTAINTY);
 
 			// Make sure something changes to trigger propagation
-			circle.setIdentifier(generateRandomString());
+			circle.setIdentifier(EcoreUtil.generateUUID());
 
-			v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
-					.getUncertainties().add(uncertainty);
+			v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next().getUncertainties()
+					.add(uncertainty);
 		});
 
 		// STEP 2: Add a different Uncertainty to the BrakeDisk (should propagate to
 		// Circle)
-		CommittableView uncertaintyBrakesystemView = UncertaintyTestUtil.getDefaultView(vsum,
+		CommittableView view2 = UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
 				.withChangeDerivingTrait();
-		modifyView(uncertaintyBrakesystemView, (CommittableView v) -> {
+		modifyView(view2, (CommittableView v) -> {
 			BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
 					.stream()
 					.filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
@@ -92,49 +92,37 @@ public class BiDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleTest {
 					.createUncertaintyLocation(List.of(brakeDisk));
 			uncertaintyLocation.setSpecification("FromDisk");
 			Uncertainty uncertainty = UncertaintyTestFactory.createUncertainty(Optional.of(uncertaintyLocation));
-			uncertainty.setKind(UncertaintyKind.MEASUREMENT_UNCERTAINTY);
 
 			// Trigger propagation
-			brakeDisk.setSpecificationType(generateRandomString());
+			brakeDisk.setSpecificationType(EcoreUtil.generateUUID());
 
 			v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next().getUncertainties()
 					.add(uncertainty);
 		});
 
-		// FINAL ASSERTION: Each of the 120mm BrakeDisk and 60-radius Circle has 2
+		// FINAL ASSERTION: The brakedisc has two uncertainties, one automatically
+		// added, one manually added.
+		// The circle has only one, as the parameters are equal => No new uncertainty
+		// added automatically.
+		// Attention: uncertaintyLocation is currently not part of the equal check.
 		// uncertainties
 		Assertions.assertTrue(
 				assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
 						(View v) -> {
-
-							List<Uncertainty> circleUncertainties = UncertaintyTestUtil.getCircleUncertainties(v);
 							List<Uncertainty> brakeDiskUncertainties = UncertaintyTestUtil.getBrakeDiskUncertainties(v);
-
-							long brakeUncertaintiesCount = brakeDiskUncertainties.stream()
-									.filter(u -> u.getUncertaintyLocation()
-											.getReferencedComponents()
-											.stream().anyMatch(c -> ((BrakeDisk) c).getDiameterInMM() == 120))
-									.count();
-
-							long circleUncertaintiesCount = circleUncertainties.stream()
-									.filter(u -> u.getUncertaintyLocation()
-											.getReferencedComponents()
-											.stream()
-											.anyMatch(c -> ((Circle) c).getRadius() == 60))
-									.count();
+							List<Uncertainty> circleUncertainties = UncertaintyTestUtil.getCircleUncertainties(v);
 
 							boolean fromCirclePresent = brakeDiskUncertainties.stream()
 									.anyMatch(u -> u.getUncertaintyLocation().getSpecification()
 											.contains("FromCircle"));
 
 							boolean fromDiskPresent = circleUncertainties.stream()
-									.anyMatch(u -> u.getUncertaintyLocation().getSpecification()
+									.noneMatch(u -> u.getUncertaintyLocation().getSpecification()
 											.contains("FromDisk"));
 
-							return brakeUncertaintiesCount == 2 && circleUncertaintiesCount == 2
+							return brakeDiskUncertainties.size() == 2 && circleUncertainties.size() == 1
 									&& fromCirclePresent && fromDiskPresent;
 						}));
-
 	}
 
 	// These functions are only for convience, as they make the code a bit better
@@ -148,17 +136,4 @@ public class BiDirectionalUncertaintyPropagationBetweenBrakeDiskAndCircleTest {
 		return viewAssertionFunction.apply(view);
 	}
 
-	private static String generateRandomString() {
-		String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-		int length = 5;
-
-		Random random = new Random();
-		StringBuilder sb = new StringBuilder(length);
-
-		for (int i = 0; i < length; i++) {
-			sb.append(characters.charAt(random.nextInt(characters.length())));
-		}
-		System.out.println("Random String: " + sb.toString());
-		return sb.toString();
-	}
 }

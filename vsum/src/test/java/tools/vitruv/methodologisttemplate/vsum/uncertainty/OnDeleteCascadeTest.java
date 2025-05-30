@@ -7,7 +7,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
@@ -29,9 +28,9 @@ import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.UncertaintyKind;
 import uncertainty.UncertaintyLocation;
 
-public class AddAndRemoveUncertaintyWithManuallyTest {
+public class OnDeleteCascadeTest {
 	private static final Logger logger = org.slf4j.LoggerFactory
-			.getLogger(AddAndRemoveUncertaintyWithManuallyTest.class);
+			.getLogger(OnDeleteCascadeTest.class);
 
 	@BeforeAll
 	static void setup() {
@@ -54,7 +53,7 @@ public class AddAndRemoveUncertaintyWithManuallyTest {
 
 	@Disabled
 	@Test
-	void addAndRemoveUncertaintyWithManualEdit(@TempDir Path tempDir) {
+	void onDeleteCascadeTest(@TempDir Path tempDir) {
 
 		VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
 		// Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository

@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
@@ -28,10 +29,10 @@ import uncertainty.Uncertainty;
 import uncertainty.UncertaintyAnnotationRepository;
 import uncertainty.UncertaintyLocation;
 
-public class PropagateToSingleCorrespondingEntityNoOtherEntitiesAffectedTest {
+public class PropagateUncertaintyTest {
 
 	private static final Logger logger = org.slf4j.LoggerFactory
-			.getLogger(PropagateToSingleCorrespondingEntityNoOtherEntitiesAffectedTest.class);
+			.getLogger(PropagateUncertaintyTest.class);
 
 	@BeforeAll
 	static void setup() {
@@ -40,8 +41,95 @@ public class PropagateToSingleCorrespondingEntityNoOtherEntitiesAffectedTest {
 
 	}
 
+	// Plan of the test:
+	// Add BrakeDisk and Circle (by reaction)
+	// Add Uncertainty to BrakeDisk\
+	// Asserts it propagates correctly to the Circle
+
 	@Test
-	void createUncertaintyManuallyPropagateToSingleCorrespondingEntityNoOtherEntitiesAffected(
+	// createUncertaintyManuallyPropagateToSingleCorrespondingEntity
+	void propagateUncertaintyTest1(@TempDir Path tempDir) {
+
+		VirtualModel vsum = UncertaintyTestUtil.createDefaultVirtualModel(tempDir);
+		// Registers a Brakesystem, CADRepository and UncertaintyAnnotationRepository
+		UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
+		UncertaintyTestUtil.addBrakeDiscWithDiameter(vsum, tempDir, 60);
+
+		// Assert that the brake disk has a corresponding circle
+		Assertions.assertTrue(
+				assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(Brakesystem.class, CADRepository.class)),
+						(View v) -> {
+							BrakeDisk brakeDisk = (BrakeDisk) v
+									.getRootObjects(Brakesystem.class)
+									.iterator().next()
+									.getBrakeComponents().get(0);
+							Circle circle = (Circle) v.getRootObjects(
+									CADRepository.class).iterator()
+									.next()
+									.getCadElements().get(0);
+							return brakeDisk.getDiameterInMM() == circle
+									.getRadius() * 2;
+						}));
+
+		// Add uncertainty to the brake disk which should by reaction create an
+		// uncertainty referencing the circle
+		CommittableView brakeAndUncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
+				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
+				.withChangeDerivingTrait();
+		modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
+			BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
+					.stream()
+					.filter(BrakeDisk.class::isInstance).map(BrakeDisk.class::cast)
+					.findFirst().orElseThrow();
+
+			UncertaintyLocation uncertaintyLocation = UncertaintyTestFactory
+					.createUncertaintyLocation(List.of(brakeDisk));
+			Uncertainty uncertainty = UncertaintyTestFactory.createUncertainty(Optional.of(uncertaintyLocation));
+
+			v.getRootObjects(UncertaintyAnnotationRepository.class).iterator().next()
+					.getUncertainties().add(uncertainty);
+
+			// Trigger propagation
+			brakeDisk.setSpecificationType(EcoreUtil.generateUUID());
+
+		});
+
+		// Assert that there are two uncertainties in the
+		// UncertaintyAnnotationRepository
+		// Assert that one of them references the circle
+		Assertions.assertTrue(
+				assertView(UncertaintyTestUtil.getDefaultView(vsum,
+						List.of(UncertaintyAnnotationRepository.class)),
+						(View v) -> {
+
+							int s = v.getRootObjects(
+									UncertaintyAnnotationRepository.class)
+									.iterator().next()
+									.getUncertainties().size();
+
+							Uncertainty circleUncertainty = v.getRootObjects(
+									UncertaintyAnnotationRepository.class)
+									.iterator().next()
+									.getUncertainties().get(1);
+							EObject ref = circleUncertainty
+									.getUncertaintyLocation()
+									.getReferencedComponents()
+									.get(0);
+							return s == 2 && ref instanceof Circle;
+
+						}));
+
+	}
+
+	// Plan of the test:
+	// Add two BrakeDisks with different diameters
+	// Add uncertainty to one of them
+	// Assert that the uncertainty propagates to the corresponding circle
+	// Assert that the other circle is not affected
+
+	@Test
+	// createUncertaintyManuallyPropagateToSingleCorrespondingEntityNoOtherEntitiesAffected
+	void propagateUncertaintyTest2(
 			@TempDir Path tempDir) {
 
 		// Create a new Virtual Model
