@@ -34,21 +34,23 @@ import uncertainty.UncertaintyKind;
 import uncertainty.UncertaintyLocation;
 import uncertainty.UncertaintyLocationType;
 
-public class UncertaintyRepresenationTestCameraComponent {
+public class UncertaintyRepresenationCameraComponentTest {
 
 	private static final Logger logger = org.slf4j.LoggerFactory
-			.getLogger(AddAndRemoveUncertaintyTest.class);
+			.getLogger(UncertaintyRepresenationCameraComponentTest.class);
 
 	@BeforeAll
 	static void setup() {
 		Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("*",
 				new XMIResourceFactoryImpl());
+		logger.info("setup complete.");
 
 	}
 
 	// Plan of the test:
 	// Checkout uncertainty view
-	// Create three uncertainties corresponding to C1 evaluation goal from related work
+	// Create three uncertainties corresponding to C1 evaluation goal from related
+	// work
 	// Check if uncertainties have specified characertistics.
 
 	@Test
@@ -87,13 +89,13 @@ public class UncertaintyRepresenationTestCameraComponent {
 		});
 
 		Assertions.assertTrue(
-			assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
-					(View v) -> {
-						List<Uncertainty> allUncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
-								.iterator().next().getUncertainties();
-						logger.info("Initial uncertainties: " + allUncertainties);
-						return allUncertainties.size() == 3;
-					}));
+				assertView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class)),
+						(View v) -> {
+							List<Uncertainty> allUncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
+									.iterator().next().getUncertainties();
+							logger.info("Initial uncertainties: " + allUncertainties);
+							return allUncertainties.size() == 3;
+						}));
 
 	}
 
