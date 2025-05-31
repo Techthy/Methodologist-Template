@@ -21,12 +21,22 @@ import uncertainty.UncertaintyLocationType;
 import uncertainty.UncertaintyNature;
 import uncertainty.UncertaintyPerspective;
 import uncertainty.UncertaintyPerspectiveType;
+import uncertainty.UncertaintySource;
+import uncertainty.UncertaintySourceType;
 
 public class UncertaintyTestFactory {
 
 	public static UncertaintyLocation createUncertaintyLocation(List<EObject> referencedComponents) {
 		UncertaintyLocation location = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
 		location.setLocation(UncertaintyLocationType.PARAMETER);
+		location.setSpecification("Location specification");
+		location.getReferencedComponents().addAll(referencedComponents);
+		return location;
+	}
+
+	public static UncertaintyLocation createUncertaintyLocationWithLocationType(List<EObject> referencedComponents, UncertaintyLocationType locationtype) {
+		UncertaintyLocation location = UncertaintyFactory.eINSTANCE.createUncertaintyLocation();
+		location.setLocation(locationtype);
 		location.setSpecification("Location specification");
 		location.getReferencedComponents().addAll(referencedComponents);
 		return location;
@@ -53,6 +63,12 @@ public class UncertaintyTestFactory {
 		return pattern;
 	}
 
+	public static UncertaintySource createUncertaintySource(UncertaintySourceType sourcetype) {
+		UncertaintySource source = UncertaintyFactory.eINSTANCE.createUncertaintySource();
+		source.setSource(sourcetype);
+		return source;
+	}
+
 	public static Uncertainty createUncertainty(Optional<UncertaintyLocation> location) {
 
 		UncertaintyLocation uncertaintyLocation = location
@@ -69,6 +85,81 @@ public class UncertaintyTestFactory {
 		uncertainty.setEffect(createEffect());
 		uncertainty.setPerspective(createUncertaintyPerspective());
 		uncertainty.setPattern(createPattern());
+
+		return uncertainty;
+	}
+
+	/**
+	 * 
+	 * Helper
+	 * 
+	 * @param location UncertaintyLocation object, that references the actual EObject location of Uncertainty
+	 * @return Uncertainty object as specified in related work.
+	 */
+	public static Uncertainty createUncertainty1CameraComponent(Optional<UncertaintyLocation> location) {
+
+		UncertaintyLocation uncertaintyLocation = location
+				.orElseGet(() -> createUncertaintyLocation(List.of()));
+
+		Uncertainty uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
+		uncertainty.setId(EcoreUtil.generateUUID());
+		uncertainty.setKind(UncertaintyKind.MEASUREMENT_UNCERTAINTY);
+		uncertainty.setReducability(ReducabilityLevel.IRREDUCIBLE);
+		uncertainty.setNature(UncertaintyNature.ALEATORY);
+		uncertainty.setSetManually(true);
+		uncertainty.setOnDelete(OnDeleteMode.CASCADE);
+		uncertainty.setUncertaintyLocation(uncertaintyLocation);
+		uncertainty.setSource(createUncertaintySource(UncertaintySourceType.NOISE_IN_SENSING));
+
+		return uncertainty;
+	}
+
+	/**
+	 * 
+	 * Helper
+	 * 
+	 * @param location UncertaintyLocation object, that references the actual EObject location of Uncertainty
+	 * @return Uncertainty object as specified in related work.
+	 */
+	public static Uncertainty createUncertainty2CameraObjectRecognition(Optional<UncertaintyLocation> location) {
+
+		UncertaintyLocation uncertaintyLocation = location
+				.orElseGet(() -> createUncertaintyLocation(List.of()));
+
+		Uncertainty uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
+		uncertainty.setId(EcoreUtil.generateUUID());
+		uncertainty.setKind(UncertaintyKind.BEHAVIOR_UNCERTAINTY);
+		uncertainty.setReducability(ReducabilityLevel.PARTIALLY_REDUCIBLE);
+		uncertainty.setNature(UncertaintyNature.EPISTEMIC);
+		uncertainty.setSetManually(true);
+		uncertainty.setOnDelete(OnDeleteMode.CASCADE);
+		uncertainty.setUncertaintyLocation(uncertaintyLocation);
+		uncertainty.setSource(createUncertaintySource(UncertaintySourceType.MODEL));
+
+		return uncertainty;
+	}
+
+	/**
+	 * 
+	 * Helper
+	 * 
+	 * @param location UncertaintyLocation object, that references the actual EObject location of Uncertainty
+	 * @return Uncertainty object as specified in related work.
+	 */
+	public static Uncertainty createUncertainty3CameraObjectRecognition(Optional<UncertaintyLocation> location) {
+
+		UncertaintyLocation uncertaintyLocation = location
+				.orElseGet(() -> createUncertaintyLocation(List.of()));
+
+		Uncertainty uncertainty = UncertaintyFactory.eINSTANCE.createUncertainty();
+		uncertainty.setId(EcoreUtil.generateUUID());
+		uncertainty.setKind(UncertaintyKind.MEASUREMENT_UNCERTAINTY);
+		uncertainty.setReducability(ReducabilityLevel.PARTIALLY_REDUCIBLE);
+		uncertainty.setNature(UncertaintyNature.EPISTEMIC);
+		uncertainty.setSetManually(true);
+		uncertainty.setOnDelete(OnDeleteMode.CASCADE);
+		uncertainty.setUncertaintyLocation(uncertaintyLocation);
+		uncertainty.setSource(createUncertaintySource(UncertaintySourceType.ENVIRONMENT));
 
 		return uncertainty;
 	}

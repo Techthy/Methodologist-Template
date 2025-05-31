@@ -68,6 +68,21 @@ public class UncertaintyTestUtil {
 
 	}
 
+	// Registers anUncertaintyAnnotationRepository
+	public static void registerUncertaintyAnnotationRepositoryAsRoot(VirtualModel virtualModel, Path filePath) {
+		CommittableView view = getDefaultView(virtualModel,
+				List.of(UncertaintyAnnotationRepository.class))
+				.withChangeDerivingTrait();
+		modifyView(view, (CommittableView v) -> {
+			v.registerRoot(
+					UncertaintyFactory.eINSTANCE
+							.createUncertaintyAnnotationRepository(),
+					org.eclipse.emf.common.util.URI
+							.createFileURI(filePath.toString() + "/uncertainty.model"));
+		});
+
+	}
+
 	private static void modifyView(CommittableView view, Consumer<CommittableView> modificationFunction) {
 		modificationFunction.accept(view);
 		view.commitChanges();

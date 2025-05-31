@@ -22,6 +22,8 @@
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="perspective" eType="#//UncertaintyPerspective"
         containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="source" eType="#//UncertaintySource"
+        containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="UncertaintyKind">
     <eLiterals name="BeliefUncertainty" value="1"/>
@@ -82,6 +84,10 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="perspective" eType="#//UncertaintyPerspectiveType"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="specification" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="UncertaintySource">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="source" eType="#//UncertaintySourceType"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="specification" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="PatternType">
     <eLiterals name="Periodic"/>
     <eLiterals name="Persistent" value="1"/>
@@ -92,5 +98,14 @@
   <eClassifiers xsi:type="ecore:EEnum" name="UncertaintyPerspectiveType">
     <eLiterals name="Subjective"/>
     <eLiterals name="Objective" value="1"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="UncertaintySourceType">
+    <eLiterals name="MODEL"/>
+    <eLiterals name="NOISE_IN_SENSING" value="1"/>
+    <eLiterals name="RESOURCES" value="3"/>
+    <eLiterals name="GOAL_OBJECTIVES" value="4"/>
+    <eLiterals name="ENVIRONMENT" value="5"/>
+    <eLiterals name="HUMAN_IN_THE_LOOP" value="6"/>
+    <eLiterals name="MANAGED_SYSTEM_UNCERTAINTY" value="7"/>
   </eClassifiers>
 </ecore:EPackage>

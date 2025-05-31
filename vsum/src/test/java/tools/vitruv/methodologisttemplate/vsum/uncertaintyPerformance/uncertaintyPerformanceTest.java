@@ -222,7 +222,7 @@ public class uncertaintyPerformanceTest {
 
 		long endTime = System.nanoTime();
 		long durationMs = (endTime - startTime) / 1_000_000;
-		logger.info("[2a] Execution time for creation of 10 brake disks: {} ms", durationMs);
+		logger.info("[3a] Execution time for creation of 10 brake disks: {} ms", durationMs);
 
 		// Assert that only one uncertainty was created
 		View assertionView = UncertaintyTestUtil.getDefaultView(vsum,
@@ -273,7 +273,7 @@ public class uncertaintyPerformanceTest {
 
 		long endTime = System.nanoTime();
 		long durationMs = (endTime - startTime) / 1_000_000;
-		logger.info("[2b] Execution time for creation of 10 brake disks with uncertainty: {} ms", durationMs);
+		logger.info("[3b] Execution time for creation of 10 brake disks with uncertainty: {} ms", durationMs);
 
 		// Assert that two uncertainties were created
 		View assertionView = UncertaintyTestUtil.getDefaultView(vsum,
