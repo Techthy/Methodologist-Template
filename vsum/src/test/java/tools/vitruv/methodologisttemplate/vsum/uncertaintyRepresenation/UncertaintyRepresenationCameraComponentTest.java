@@ -62,7 +62,7 @@ public class UncertaintyRepresenationCameraComponentTest {
 		// Add two uncertainties to the brake disk
 		CommittableView uncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait();
+				.withChangeRecordingTrait();
 		modifyView(uncertaintyView, (CommittableView v) -> {
 			UncertaintyLocation firstLocation = UncertaintyTestFactory.createUncertaintyLocationWithLocationType(
 					new ArrayList<EObject>(), UncertaintyLocationType.OUTCOME);
@@ -102,7 +102,7 @@ public class UncertaintyRepresenationCameraComponentTest {
 	private void deleteBrakeDiskUncertainty(VirtualModel vsum) {
 		modifyView(UncertaintyTestUtil
 				.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 
 					EList<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next()

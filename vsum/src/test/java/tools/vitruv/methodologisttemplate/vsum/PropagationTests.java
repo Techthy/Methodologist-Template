@@ -65,7 +65,7 @@ public class PropagationTests {
 
 		// Add a Circle to the CADRepository with a radius of 60
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(CADRepository.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					var circle = CadFactory.eINSTANCE.createCircle();
 					circle.setRadius(60);
 					v.getRootObjects(CADRepository.class).iterator().next().getCadElements().add(circle);
@@ -93,7 +93,7 @@ public class PropagationTests {
 		UncertaintyTestUtil.registerRootObjects(vsum, tempDir);
 
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(Brakesystem.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					var brakeDisc = BrakesystemFactory.eINSTANCE.createBrakeDisk();
 					brakeDisc.setDiameterInMM(120);
 					v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents().add(brakeDisc);

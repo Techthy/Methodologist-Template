@@ -21,7 +21,6 @@ import cad.Circle;
 import tools.vitruv.framework.views.CommittableView;
 import tools.vitruv.framework.views.View;
 import tools.vitruv.framework.vsum.VirtualModel;
-import tools.vitruv.methodologisttemplate.vsum.uncertainty.AddAndRemoveUncertaintyTest;
 import tools.vitruv.methodologisttemplate.vsum.uncertainty.UncertaintyTestFactory;
 import tools.vitruv.methodologisttemplate.vsum.uncertainty.UncertaintyTestUtil;
 import uncertainty.Effect;
@@ -34,7 +33,7 @@ import uncertainty.UncertaintyLocation;
 
 public class BrakeDiskDiameterUncertaintyTest {
 	private static final Logger logger = org.slf4j.LoggerFactory
-			.getLogger(AddAndRemoveUncertaintyTest.class);
+			.getLogger(BrakeDiskDiameterUncertaintyTest.class);
 
 	@BeforeAll
 	static void setup() {
@@ -74,7 +73,7 @@ public class BrakeDiskDiameterUncertaintyTest {
 
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-				.withChangeDerivingTrait(),
+				.withChangeRecordingTrait(),
 				(CommittableView v) -> {
 					BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next()
 							.getBrakeComponents()

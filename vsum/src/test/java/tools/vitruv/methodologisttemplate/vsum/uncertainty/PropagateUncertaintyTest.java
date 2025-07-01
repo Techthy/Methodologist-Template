@@ -75,7 +75,7 @@ public class PropagateUncertaintyTest {
 		// uncertainty referencing the circle
 		CommittableView brakeAndUncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-				.withChangeDerivingTrait();
+				.withChangeRecordingTrait();
 		modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
 			BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
 					.stream()
@@ -175,7 +175,7 @@ public class PropagateUncertaintyTest {
 		// Add uncertainty only to the 120mm BrakeDisk
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					BrakeDisk targetDisk = v.getRootObjects(Brakesystem.class).iterator().next()
 							.getBrakeComponents().stream().filter(BrakeDisk.class::isInstance)
 							.map(BrakeDisk.class::cast)

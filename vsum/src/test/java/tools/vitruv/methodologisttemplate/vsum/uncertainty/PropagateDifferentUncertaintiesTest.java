@@ -58,7 +58,7 @@ public class PropagateDifferentUncertaintiesTest {
 		// STEP 1: Add Uncertainty to the Circle (should propagate to BrakeDisk)
 		CommittableView uncertaintyCADView = UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, CADRepository.class))
-				.withChangeDerivingTrait();
+				.withChangeRecordingTrait();
 		modifyView(uncertaintyCADView, (CommittableView v) -> {
 			Circle circle = v.getRootObjects(CADRepository.class).iterator().next().getCadElements().stream()
 					.filter(Circle.class::isInstance).map(Circle.class::cast)
@@ -81,7 +81,7 @@ public class PropagateDifferentUncertaintiesTest {
 		// Circle)
 		CommittableView uncertaintyBrakesystemView = UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-				.withChangeDerivingTrait();
+				.withChangeRecordingTrait();
 		modifyView(uncertaintyBrakesystemView, (CommittableView v) -> {
 			BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
 					.stream()

@@ -17,7 +17,7 @@ import tools.vitruv.framework.vsum.VirtualModel;
 public class VSUMExample {
   public static void main(String[] args) {
     VirtualModel vsum = createDefaultVirtualModel();
-    CommittableView view = getDefaultView(vsum).withChangeDerivingTrait();
+    CommittableView view = getDefaultView(vsum).withChangeRecordingTrait();
     modifyView(view, (CommittableView v) -> {
       v.getRootObjects().add(UncertaintyFactory.eINSTANCE.createUncertaintyAnnotationRepository());
     });

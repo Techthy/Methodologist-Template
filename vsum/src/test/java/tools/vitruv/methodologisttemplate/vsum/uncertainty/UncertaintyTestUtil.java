@@ -53,7 +53,7 @@ public class UncertaintyTestUtil {
 	public static void registerRootObjects(VirtualModel virtualModel, Path filePath) {
 		CommittableView view = getDefaultView(virtualModel,
 				List.of(Brakesystem.class, CADRepository.class, UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait();
+				.withChangeRecordingTrait();
 		modifyView(view, (CommittableView v) -> {
 			v.registerRoot(
 					UncertaintyFactory.eINSTANCE
@@ -72,7 +72,7 @@ public class UncertaintyTestUtil {
 	public static void registerUncertaintyAnnotationRepositoryAsRoot(VirtualModel virtualModel, Path filePath) {
 		CommittableView view = getDefaultView(virtualModel,
 				List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait();
+				.withChangeRecordingTrait();
 		modifyView(view, (CommittableView v) -> {
 			v.registerRoot(
 					UncertaintyFactory.eINSTANCE
@@ -100,7 +100,7 @@ public class UncertaintyTestUtil {
 
 	public static void addBrakeDiscWithDiameter(VirtualModel vsum, Path projectPath, int diameter) {
 		CommittableView view = getDefaultView(vsum, List.of(Brakesystem.class))
-				.withChangeDerivingTrait();
+				.withChangeRecordingTrait();
 		modifyView(view, (CommittableView v) -> {
 			var brakeDisc = BrakesystemFactory.eINSTANCE.createBrakeDisk();
 			brakeDisc.setDiameterInMM(diameter);

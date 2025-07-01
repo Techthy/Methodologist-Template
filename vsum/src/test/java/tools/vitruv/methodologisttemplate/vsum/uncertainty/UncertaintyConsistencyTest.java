@@ -67,7 +67,7 @@ public class UncertaintyConsistencyTest {
 		// Add two uncertainties to the brake disk
 		CommittableView brakeAndUncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-				.withChangeDerivingTrait();
+				.withChangeRecordingTrait();
 		modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
 			BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
 					.stream()
@@ -112,7 +112,7 @@ public class UncertaintyConsistencyTest {
 
 		// Change the primitive attributes one uncertainty
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					List<Uncertainty> uncertainties = v
 							.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next().getUncertainties();
@@ -122,7 +122,7 @@ public class UncertaintyConsistencyTest {
 				});
 
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					List<Uncertainty> uncertainties = v
 							.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next().getUncertainties();
@@ -132,7 +132,7 @@ public class UncertaintyConsistencyTest {
 				});
 
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					List<Uncertainty> uncertainties = v
 							.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next().getUncertainties();
@@ -142,7 +142,7 @@ public class UncertaintyConsistencyTest {
 				});
 
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					List<Uncertainty> uncertainties = v
 							.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next().getUncertainties();
@@ -180,7 +180,7 @@ public class UncertaintyConsistencyTest {
 		// Add two uncertainties to the brake disk
 		CommittableView brakeAndUncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-				.withChangeDerivingTrait();
+				.withChangeRecordingTrait();
 		modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
 			BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
 					.stream()
@@ -222,7 +222,7 @@ public class UncertaintyConsistencyTest {
 		// Change the pattern of the first uncertainty to TRANSIENT
 
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					List<Uncertainty> uncertainties = v
 							.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next().getUncertainties();
@@ -261,7 +261,7 @@ public class UncertaintyConsistencyTest {
 		// Add two uncertainties to the brake disk
 		CommittableView brakeAndUncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-				.withChangeDerivingTrait();
+				.withChangeRecordingTrait();
 		modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
 			BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
 					.stream()
@@ -306,7 +306,7 @@ public class UncertaintyConsistencyTest {
 
 		// Change the perspective of the first uncertainty to SUBJECTIVE
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					List<Uncertainty> uncertainties = v
 							.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next().getUncertainties();
@@ -317,7 +317,7 @@ public class UncertaintyConsistencyTest {
 				});
 
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					List<Uncertainty> uncertainties = v
 							.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next().getUncertainties();
@@ -360,7 +360,7 @@ public class UncertaintyConsistencyTest {
 		// Add two uncertainties to the brake disk
 		CommittableView brakeAndUncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-				.withChangeDerivingTrait();
+				.withChangeRecordingTrait();
 		modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
 			BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
 					.stream()
@@ -406,7 +406,7 @@ public class UncertaintyConsistencyTest {
 						}));
 		// Change specification of the effect to "effectTwo"
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					List<Uncertainty> uncertainties = v
 							.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next().getUncertainties();
@@ -418,7 +418,7 @@ public class UncertaintyConsistencyTest {
 
 		// Change the representation of the effect to DISCRETE
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					List<Uncertainty> uncertainties = v
 							.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next().getUncertainties();
@@ -429,7 +429,7 @@ public class UncertaintyConsistencyTest {
 				});
 		// Change the stochasticity of the effect to PROBABILISTIC
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					List<Uncertainty> uncertainties = v
 							.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next().getUncertainties();
@@ -472,7 +472,7 @@ public class UncertaintyConsistencyTest {
 		// Add two uncertainties to the brake disk
 		CommittableView brakeAndUncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-				.withChangeDerivingTrait();
+				.withChangeRecordingTrait();
 		modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
 			BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
 					.stream()
@@ -518,7 +518,7 @@ public class UncertaintyConsistencyTest {
 		// Change the location of the first uncertainty to DECISION_MAKING
 		modifyView(UncertaintyTestUtil
 				.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					List<Uncertainty> uncertainties = v
 							.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next().getUncertainties();
@@ -531,7 +531,7 @@ public class UncertaintyConsistencyTest {
 		// Change the specification of the first uncertainty to "specificationTwo"
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class))
 
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					List<Uncertainty> uncertainties = v
 							.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next().getUncertainties();

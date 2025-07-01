@@ -65,7 +65,7 @@ public class OnDeleteCascadeTest {
 		// Add two uncertainties to the brake disk
 		CommittableView brakeAndUncertaintyView = UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-				.withChangeDerivingTrait();
+				.withChangeRecordingTrait();
 		modifyView(brakeAndUncertaintyView, (CommittableView v) -> {
 			BrakeDisk brakeDisk = v.getRootObjects(Brakesystem.class).iterator().next().getBrakeComponents()
 					.stream()
@@ -105,7 +105,7 @@ public class OnDeleteCascadeTest {
 		// Manually edit the circle Uncertainty
 		modifyView(UncertaintyTestUtil.getDefaultView(vsum,
 				List.of(UncertaintyAnnotationRepository.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 					Uncertainty circleUncertainty = v.getRootObjects(UncertaintyAnnotationRepository.class).iterator()
 							.next()
 							.getUncertainties().stream()
@@ -154,7 +154,7 @@ public class OnDeleteCascadeTest {
 	private void deleteBrakeDiskUncertainty(VirtualModel vsum) {
 		modifyView(UncertaintyTestUtil
 				.getDefaultView(vsum, List.of(UncertaintyAnnotationRepository.class, Brakesystem.class))
-				.withChangeDerivingTrait(), (CommittableView v) -> {
+				.withChangeRecordingTrait(), (CommittableView v) -> {
 
 					EList<Uncertainty> uncertainties = v.getRootObjects(UncertaintyAnnotationRepository.class)
 							.iterator().next()
